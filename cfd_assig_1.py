@@ -304,7 +304,3 @@ plt.title('Heat flux')
 plt.axis('equal')
 
 plt.show()
-
-
-
-a = 54
