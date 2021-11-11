@@ -60,17 +60,17 @@ def dirichlet_function(x,y,boundaries):
         if boundary == 0:
             kb = (k[x, y] + k[x + 1, y]) / 2
             S_P[x, y] -= kb*dy_CV[x, y]/dxe_N[x, y]
-            S_U[x, y] += kb*dy_CV[x, y]/dxe_N[x, y]*T2
+            S_U[x, y] += T2*kb*dy_CV[x, y]/dxe_N[x, y]
         elif boundary == 1:
             continue
         elif boundary == 2:
             kb = (k[x, y] + k[x, y + 1]) / 2
             S_P[x, y] -= kb*dx_CV[x, y]/dyn_N[x, y]
-            S_U[x, y] += kb*dx_CV[x, y]/dyn_N[x, y]*T[x,y+1]
+            S_U[x, y] += T[x,y+1]*kb*dx_CV[x, y]/dyn_N[x, y]
         elif boundary == 3:
             kb = (k[x, y] + k[x, y - 1]) / 2
             S_P[x, y] -= kb*dx_CV[x, y]/dys_N[x, y]
-            S_U[x, y] += kb*dx_CV[x, y]/dys_N[x, y]*T1
+            S_U[x, y] += T1*kb*dx_CV[x, y]/dys_N[x, y]
     coeffsT[x, y, 4] = coeffsT[x, y, 0] + coeffsT[x, y, 1] + coeffsT[x, y, 2] + coeffsT[x, y, 3] - S_P[x, y]
 
 
@@ -164,6 +164,16 @@ elif grid_type == 'non-equidistant':
 xCoords_N[-1,:] = xL
 yCoords_N[:,-1] = yL
 
+dx_CV[:,-1] = dx_CV[:,-2]
+dx_CV[:,0] = dx_CV[:,1]
+dx_CV[-1,:] = dx_CV[-2,:]
+dx_CV[0,:] = dx_CV[1,:]
+
+dy_CV[:,-1] = dy_CV[:,-2]
+dy_CV[:,0] = dy_CV[:,1]
+dy_CV[-1,:] = dy_CV[-2,:]
+dy_CV[0,:] = dy_CV[1,:]
+
 # Fill dxe, dxw, dyn and dys
 dxe_N[0:nI-1, :] = np.diff(xCoords_N, axis=0)
 dxw_N[1:nI, :] = np.diff(xCoords_N, axis=0)
@@ -210,10 +220,10 @@ for iter in range(nIterations):
     ## Compute coefficients for inner nodes
     for i in range(2,nI-2):
         for j in range(2,nJ-2):
-            coeffsT[i,j,0] = ((k[i,j] + k[i+1,j])/2)*dy_CV[i,j]/dxe_N[i,j]
-            coeffsT[i,j,1] = ((k[i,j] + k[i-1,j])/2)*dy_CV[i,j]/dxw_N[i,j]
-            coeffsT[i,j,2] = ((k[i,j] + k[i,j+1])/2)*dx_CV[i,j]/dyn_N[i,j]
-            coeffsT[i,j,3] = ((k[i,j] + k[i,j-1])/2)*dx_CV[i,j]/dys_N[i,j]
+            coeffsT[i,j,0] = ((k[i+1,j] + k[i,j])/2)*dy_CV[i,j]/dxe_N[i,j]
+            coeffsT[i,j,1] = ((k[i-1,j] + k[i,j])/2)*dy_CV[i,j]/dxw_N[i,j]
+            coeffsT[i,j,2] = ((k[i,j+1] + k[i,j])/2)*dx_CV[i,j]/dyn_N[i,j]
+            coeffsT[i,j,3] = ((k[i,j-1] + k[i,j])/2)*dx_CV[i,j]/dys_N[i,j]
             coeffsT[i,j,4] = coeffsT[i,j,0] + coeffsT[i,j,1] + coeffsT[i,j,2] + coeffsT[i,j,3] - S_P[i,j]
     i = 1
     j = 1
@@ -242,16 +252,17 @@ for iter in range(nIterations):
     temp_r_sum = 0
     for i in range(1,nI-1):
         for j in range(1,nJ-1):
-            temp_r_sum += abs(coeffsT[i,j,4]*T[i,j] - (coeffsT[i+1,j,0]*T[i+1,j] + coeffsT[i-1,j,1]*T[i-1,j] + coeffsT[i,j+1,2]*T[i,j+1] + coeffsT[i,j-1,3]*T[i,j-1] + S_U[i,j]))
+            temp_r_sum += abs(coeffsT[i,j,4]*T[i,j] - (coeffsT[i,j,0]*T[i+1,j] + coeffsT[i,j,1]*T[i-1,j] + coeffsT[i,j,2]*T[i,j+1] + coeffsT[i,j,3]*T[i,j-1] + S_U[i,j]))
     F = 0
     [dT_dx, dT_dy] = np.gradient(T, xCoords_N[:,0], yCoords_N[0,:])
+
     for i in range(nI):
-        F += abs((k[i,0] + k[i,1])/2 * dx_CV[i,1]*dT_dy[i,0])
-        F += abs((k[i,-1] + k[i,-2])/2*dx_CV[i,-2]*dT_dy[i,-1])
+        F += abs(k[i,0]*dx_CV[i,1]*dT_dy[i,0])
+        F += abs(k[i,-1]*dx_CV[i,-2]*dT_dy[i,-1])
 
     for j in range(nJ):
-        F += abs((k[0,j] + k[1,j])/2*dy_CV[1,j]*dT_dx[0,j])
-        F += abs((k[-1,j] + k[-2,j])/2*dy_CV[-2,j]*dT_dx[-1,j] )
+        F += abs(k[0,j]*dy_CV[1,j]*dT_dx[0,j])
+        F += abs(k[-1,j]*dy_CV[-2,j]*dT_dx[-1,j] )
     r = temp_r_sum/F
     residuals.append(r)
     
@@ -283,7 +294,7 @@ plt.axis('equal')
 
 # Plot temperature contour
 plt.subplot(2,2,2)
-plt.contour(T,levels=100)
+plt.contour(T,levels=10)
 plt.title('Temperature [ºC]')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
