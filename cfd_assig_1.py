@@ -80,7 +80,7 @@ def dirichlet_function(x,y,boundaries):
 
 mI = 20 # number of mesh points X direction.
 mJ = 20 # number of mesh points Y direction.
-grid_type = 'equidistant' # this sets equidistant mesh sizing or non-equidistant
+grid_type = 'non-equidistant' # this sets equidistant mesh sizing or non-equidistant
 xL = 1 # length of the domain in X direction
 yL = 7 # length of the domain in Y direction
 c1 = 25
@@ -91,7 +91,7 @@ T2 = 20
 # Solver inputs
 
 nIterations  = 500 # maximum number of iterations
-resTolerance = 1e-3 # convergence criteria for residuals each variable
+resTolerance = 1e-4 # convergence criteria for residuals each variable
 
 #====================== Code ======================
 
@@ -129,34 +129,37 @@ dy_CV     = np.zeros((nI,nJ)) # Y size of the control volume
 
 if grid_type == 'equidistant':
     # Control volume size
-    dx = xL/(mI - 1)
-    dy = yL/(mJ - 1)
-
+    dx = np.ones(nI)*xL/(mI - 1)
+    dy = np.ones(nJ)*yL/(mJ - 1)
+elif grid_type == 'non-equidistant':
+    # first and last value must add to 2 (any combination works)
+    dx = np.linspace(0.2, 1.8, nI)*xL/(mI-1)
+    dy = np.linspace(1.5, 0.5, nJ)*yL/(mJ-1)
     # Fill the coordinates
-    for i in range(mI):
-        for j in range(mJ):
+for i in range(mI):
+    for j in range(mJ):
             # For the mesh points
-            xCoords_M[i,j] = i*dx
-            yCoords_M[i,j] = j*dy
+        if i > 0:
+            xCoords_M[i,j] = xCoords_M[i-1,j] + dx[i]
+        if j > 0:
+            yCoords_M[i,j] = yCoords_M[i,j-1] + dy[j]
 
             # For the nodes
-            if i > 0:
-                xCoords_N[i,j] = 0.5*(xCoords_M[i,j] + xCoords_M[i-1,j])
-            if i == (mI-1) and j>0:
-                yCoords_N[i+1,j] = 0.5*(yCoords_M[i,j] + yCoords_M[i,j-1])
-            if j >0:
-                yCoords_N[i,j] = 0.5*(yCoords_M[i,j] + yCoords_M[i,j-1])
-            if j == (mJ-1) and i>0:
-                xCoords_N[i,j+1] = 0.5*(xCoords_M[i,j] + xCoords_M[i-1,j])
+        if i > 0:
+            xCoords_N[i,j] = 0.5*(xCoords_M[i,j] + xCoords_M[i-1,j])
+        if i == (mI-1) and j>0:
+            yCoords_N[i+1,j] = 0.5*(yCoords_M[i,j] + yCoords_M[i,j-1])
+        if j >0:
+            yCoords_N[i,j] = 0.5*(yCoords_M[i,j] + yCoords_M[i,j-1])
+        if j == (mJ-1) and i>0:
+            xCoords_N[i,j+1] = 0.5*(xCoords_M[i,j] + xCoords_M[i-1,j])
 
             # Fill dx_CV and dy_CV
-            if i>0:
-                dx_CV[i,j] = xCoords_M[i,j] - xCoords_M[i-1,j]
-            if j>0:
-                dy_CV[i,j] = yCoords_M[i,j] - yCoords_M[i,j-1]
-elif grid_type == 'non-equidistant':
-    rx = 1.15
-    ry = 1.15
+        if i>0:
+            dx_CV[i,j] = xCoords_M[i,j] - xCoords_M[i-1,j]
+        if j>0:
+            dy_CV[i,j] = yCoords_M[i,j] - yCoords_M[i,j-1]
+
     
     # Fill the necessary code to generate a non equidistant grid and
     # fill the needed matrixes for the geometrical quantities
@@ -281,6 +284,9 @@ for i in range(1,nI-1):
     
 # Plotting section (these are some examples, more plots might be needed)
 
+
+plt.plot(xCoords_M,yCoords_M)
+plt.plot(np.transpose(xCoords_M), np.transpose(yCoords_M))
 # Plot results
 plt.figure()
 
@@ -294,10 +300,11 @@ plt.axis('equal')
 
 # Plot temperature contour
 plt.subplot(2,2,2)
-plt.contour(T,levels=10)
+
+plt.contour(np.flip(np.transpose(T),0),levels=50)
 plt.title('Temperature [ºC]')
-plt.xlabel('x [m]')
-plt.ylabel('y [m]')
+plt.xlabel('x [ind]')
+plt.ylabel('y [ind]')
 plt.axis('equal')
 
 # Plot residual convergence
@@ -315,3 +322,4 @@ plt.title('Heat flux')
 plt.axis('equal')
 
 plt.show()
+
