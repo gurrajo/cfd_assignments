@@ -51,24 +51,33 @@ import matplotlib.pyplot as plt
 
 
 def dirichlet_function(x,y,boundaries):
-    coeffsT[x, y, 0] = ((k[x, y] + k[x + 1, y]) / 2) * dy_CV[x, y] / dxe_N[x, y]
-    coeffsT[x, y, 1] = ((k[x, y] + k[x - 1, y]) / 2) * dy_CV[x, y] / dxw_N[x, y]
-    coeffsT[x, y, 2] = ((k[x, y] + k[x, y + 1]) / 2) * dx_CV[x, y] / dyn_N[x, y]
-    coeffsT[x, y, 3] = ((k[x, y] + k[x, y - 1]) / 2) * dx_CV[x, y] / dys_N[x, y]
+    i = x
+    j = y
+    coeffsT[i, j, 0] = (k[i + 1, j] * dx_CV[i + 1, j] / (2 * dxe_N[i, j]) + k[i, j] * dx_CV[i, j] / (2 * dxe_N[i, j])) * \
+                       dy_CV[i, j] / dxe_N[i, j]
+    coeffsT[i, j, 1] = (k[i - 1, j] * dx_CV[i - 1, j] / (2 * dxw_N[i, j]) + k[i, j] * dx_CV[i, j] / (2 * dxw_N[i, j])) * \
+                       dy_CV[i, j] / dxw_N[i, j]
+    coeffsT[i, j, 2] = (k[i, j + 1] * dy_CV[i, j + 1] / (2 * dyn_N[i, j]) + k[i, j] * dy_CV[i, j] / (2 * dyn_N[i, j])) * \
+                       dx_CV[i, j] / dyn_N[i, j]
+    coeffsT[i, j, 3] = (k[i, j - 1] * dy_CV[i, j - 1] / (2 * dys_N[i, j]) + k[i, j] * dy_CV[i, j] / (2 * dys_N[i, j])) * \
+                       dx_CV[i, j] / dys_N[i, j]
     for boundary in boundaries:
         coeffsT[x, y, boundary] = 0
         if boundary == 0:
-            kb = (k[x, y] + k[x + 1, y]) / 2
+            kb = k[x + 1, y]
             S_P[x, y] -= kb*dy_CV[x, y]/dxe_N[x, y]
             S_U[x, y] += T2*kb*dy_CV[x, y]/dxe_N[x, y]
         elif boundary == 1:
-            continue
+            continue # neumman
+            #kb = k[x - 1, y]
+            #S_P[x, y] -= kb * dy_CV[x, y] / dxw_N[x, y]
+            #S_U[x, y] += 5 * kb * dy_CV[x, y] / dxw_N[x, y]
         elif boundary == 2:
-            kb = (k[x, y] + k[x, y + 1]) / 2
+            kb = k[x, y + 1]
             S_P[x, y] -= kb*dx_CV[x, y]/dyn_N[x, y]
             S_U[x, y] += T[x,y+1]*kb*dx_CV[x, y]/dyn_N[x, y]
         elif boundary == 3:
-            kb = (k[x, y] + k[x, y - 1]) / 2
+            kb = k[x, y - 1]
             S_P[x, y] -= kb*dx_CV[x, y]/dys_N[x, y]
             S_U[x, y] += T1*kb*dx_CV[x, y]/dys_N[x, y]
     coeffsT[x, y, 4] = coeffsT[x, y, 0] + coeffsT[x, y, 1] + coeffsT[x, y, 2] + coeffsT[x, y, 3] - S_P[x, y]
@@ -80,7 +89,7 @@ def dirichlet_function(x,y,boundaries):
 
 mI = 20 # number of mesh points X direction.
 mJ = 20 # number of mesh points Y direction.
-grid_type = 'non-equidistant' # this sets equidistant mesh sizing or non-equidistant
+grid_type = 'equidistant' # this sets equidistant mesh sizing or non-equidistant
 xL = 1 # length of the domain in X direction
 yL = 7 # length of the domain in Y direction
 c1 = 25
@@ -90,8 +99,8 @@ T2 = 20
 
 # Solver inputs
 
-nIterations  = 500 # maximum number of iterations
-resTolerance = 1e-4 # convergence criteria for residuals each variable
+nIterations  = 1000 # maximum number of iterations
+resTolerance = 0.001 # convergence criteria for residuals each variable
 
 #====================== Code ======================
 
@@ -133,8 +142,8 @@ if grid_type == 'equidistant':
     dy = np.ones(nJ)*yL/(mJ - 1)
 elif grid_type == 'non-equidistant':
     # first and last value must add to 2 (any combination works)
-    dx = np.linspace(0.2, 1.8, nI)*xL/(mI-1)
-    dy = np.linspace(1.5, 0.5, nJ)*yL/(mJ-1)
+    dx = np.linspace(0.1, 1.9, nI)*xL/(mI-1)
+    dy = np.linspace(1.6, 0.4, nJ)*yL/(mJ-1)
     # Fill the coordinates
 for i in range(mI):
     for j in range(mJ):
@@ -167,15 +176,6 @@ for i in range(mI):
 xCoords_N[-1,:] = xL
 yCoords_N[:,-1] = yL
 
-dx_CV[:,-1] = dx_CV[:,-2]
-dx_CV[:,0] = dx_CV[:,1]
-dx_CV[-1,:] = dx_CV[-2,:]
-dx_CV[0,:] = dx_CV[1,:]
-
-dy_CV[:,-1] = dy_CV[:,-2]
-dy_CV[:,0] = dy_CV[:,1]
-dy_CV[-1,:] = dy_CV[-2,:]
-dy_CV[0,:] = dy_CV[1,:]
 
 # Fill dxe, dxw, dyn and dys
 dxe_N[0:nI-1, :] = np.diff(xCoords_N, axis=0)
@@ -187,18 +187,18 @@ dys_N[:, 1:nJ] = np.diff(yCoords_N)
 
 T[-1,:] = T2 # boundary 2
 T[:,0] = T1 # boundary 1
-
+#T[0,:] = 5
 # boundary 3
 for i in range(nI):
     T[i,-1] = 5 + 3*(1 + 5*xCoords_N[i,-1]/xL)
 
 # Looping
-
+x = []
 for iter in range(nIterations):
     # Update conductivity coefficient matrix, k, according to your case
     for i in range(nI):
         for j in range(nJ):
-            k[i,j] = 16*(yCoords_N[i,j]/yL + 30*T[i,j]/T1)
+            k[i,j] = (16*(yCoords_N[i,j]/yL + 30*T[i,j]/T1))
     # Update source term matrix according to your case
     for i in range(nI):
         for j in range(nJ):
@@ -223,10 +223,10 @@ for iter in range(nIterations):
     ## Compute coefficients for inner nodes
     for i in range(2,nI-2):
         for j in range(2,nJ-2):
-            coeffsT[i,j,0] = ((k[i+1,j] + k[i,j])/2)*dy_CV[i,j]/dxe_N[i,j]
-            coeffsT[i,j,1] = ((k[i-1,j] + k[i,j])/2)*dy_CV[i,j]/dxw_N[i,j]
-            coeffsT[i,j,2] = ((k[i,j+1] + k[i,j])/2)*dx_CV[i,j]/dyn_N[i,j]
-            coeffsT[i,j,3] = ((k[i,j-1] + k[i,j])/2)*dx_CV[i,j]/dys_N[i,j]
+            coeffsT[i,j,0] = (k[i+1,j]*dx_CV[i+1,j]/(2*dxe_N[i,j]) + k[i,j]*dx_CV[i,j]/(2*dxe_N[i,j]))*dy_CV[i,j]/dxe_N[i,j]
+            coeffsT[i,j,1] = (k[i-1,j]*dx_CV[i-1,j]/(2*dxw_N[i,j]) + k[i,j]*dx_CV[i,j]/(2*dxw_N[i,j]))*dy_CV[i,j]/dxw_N[i,j]
+            coeffsT[i,j,2] = (k[i,j+1]*dy_CV[i,j+1]/(2*dyn_N[i,j]) + k[i,j]*dy_CV[i,j]/(2*dyn_N[i,j]))*dx_CV[i,j]/dyn_N[i,j]
+            coeffsT[i,j,3] = (k[i,j-1]*dy_CV[i,j-1]/(2*dys_N[i,j]) + k[i,j]*dy_CV[i,j]/(2*dys_N[i,j]))*dx_CV[i,j]/dys_N[i,j]
             coeffsT[i,j,4] = coeffsT[i,j,0] + coeffsT[i,j,1] + coeffsT[i,j,2] + coeffsT[i,j,3] - S_P[i,j]
     i = 1
     j = 1
@@ -267,6 +267,7 @@ for iter in range(nIterations):
         F += abs(k[0,j]*dy_CV[1,j]*dT_dx[0,j])
         F += abs(k[-1,j]*dy_CV[-2,j]*dT_dx[-1,j] )
     r = temp_r_sum/F
+    x.append(iter)
     residuals.append(r)
     
     print('iteration: %d\nresT = %.5e\n\n'  % (iter, residuals[-1]))
@@ -276,23 +277,24 @@ for iter in range(nIterations):
         break
 
 # Compute heat fluxes
-for i in range(1,nI-1):
-    for j in range(1,nJ-1):
-        q = 1
-#        q[i,j,0] =
-#        q[i,j,1] =
+[dT_dx, dT_dy] = np.gradient(T, xCoords_N[:,0], yCoords_N[0,:])
     
 # Plotting section (these are some examples, more plots might be needed)
 
 
 plt.plot(xCoords_M,yCoords_M)
 plt.plot(np.transpose(xCoords_M), np.transpose(yCoords_M))
+plt.title(str(mI) + " by " + str(mJ) + " " + str(grid_type) +" mesh ")
 # Plot results
 plt.figure()
+plt.quiver(xCoords_N,yCoords_N,dT_dx,dT_dy)
 
+plt.figure()
+plt.suptitle(str(mI) + " by " + str(mJ) + " " + str(grid_type) +" mesh ")
 # Plot mesh
 plt.subplot(2,2,1)
-
+plt.plot(xCoords_M,yCoords_M)
+plt.plot(np.transpose(xCoords_M), np.transpose(yCoords_M))
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
 plt.title('Computational mesh')
@@ -309,6 +311,7 @@ plt.axis('equal')
 
 # Plot residual convergence
 plt.subplot(2,2,3)
+plt.plot(x,residuals)
 plt.title('Residual convergence')
 plt.xlabel('iterations')
 plt.ylabel('residuals [-]')
@@ -316,6 +319,7 @@ plt.title('Residual')
 
 # Plot heat fluxes
 plt.subplot(2,2,4)
+plt.quiver(xCoords_N,yCoords_N,dT_dx,dT_dy)
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
 plt.title('Heat flux')
