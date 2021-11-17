@@ -68,7 +68,7 @@ def dirichlet_function(x,y,boundaries):
             S_P[x, y] -= kb*dy_CV[x, y]/dxe_N[x, y]
             S_U[x, y] += T2*kb*dy_CV[x, y]/dxe_N[x, y]
         elif boundary == 1:
-            continue # neumman
+            continue # neumann
             #kb = k[x - 1, y]
             #S_P[x, y] -= kb * dy_CV[x, y] / dxw_N[x, y]
             #S_U[x, y] += 5 * kb * dy_CV[x, y] / dxw_N[x, y]
@@ -89,7 +89,7 @@ def dirichlet_function(x,y,boundaries):
 
 mI = 20 # number of mesh points X direction.
 mJ = 20 # number of mesh points Y direction.
-grid_type = 'equidistant' # this sets equidistant mesh sizing or non-equidistant
+grid_type = 'non-equidistant' # this sets equidistant mesh sizing or non-equidistant
 xL = 1 # length of the domain in X direction
 yL = 7 # length of the domain in Y direction
 c1 = 25
@@ -144,7 +144,7 @@ elif grid_type == 'non-equidistant':
     # first and last value must add to 2 (any combination works)
     dx = np.linspace(0.1, 1.9, nI)*xL/(mI-1)
     dy = np.linspace(1.6, 0.4, nJ)*yL/(mJ-1)
-    # Fill the coordinates
+    # size of cells will way with x and y according to the used values
 for i in range(mI):
     for j in range(mJ):
             # For the mesh points
@@ -223,10 +223,11 @@ for iter in range(nIterations):
     ## Compute coefficients for inner nodes
     for i in range(2,nI-2):
         for j in range(2,nJ-2):
-            coeffsT[i,j,0] = (k[i+1,j]*dx_CV[i+1,j]/(2*dxe_N[i,j]) + k[i,j]*dx_CV[i,j]/(2*dxe_N[i,j]))*dy_CV[i,j]/dxe_N[i,j]
-            coeffsT[i,j,1] = (k[i-1,j]*dx_CV[i-1,j]/(2*dxw_N[i,j]) + k[i,j]*dx_CV[i,j]/(2*dxw_N[i,j]))*dy_CV[i,j]/dxw_N[i,j]
-            coeffsT[i,j,2] = (k[i,j+1]*dy_CV[i,j+1]/(2*dyn_N[i,j]) + k[i,j]*dy_CV[i,j]/(2*dyn_N[i,j]))*dx_CV[i,j]/dyn_N[i,j]
-            coeffsT[i,j,3] = (k[i,j-1]*dy_CV[i,j-1]/(2*dys_N[i,j]) + k[i,j]*dy_CV[i,j]/(2*dys_N[i,j]))*dx_CV[i,j]/dys_N[i,j]
+            # k is calculated as (k of the node)*(half the size of the other cell)/(length between nodes).
+            coeffsT[i,j,0] = (k[i+1,j]*dx_CV[i,j]/(2*dxe_N[i,j]) + k[i,j]*dx_CV[i+1,j]/(2*dxe_N[i,j]))*dy_CV[i,j]/dxe_N[i,j]
+            coeffsT[i,j,1] = (k[i-1,j]*dx_CV[i,j]/(2*dxw_N[i,j]) + k[i,j]*dx_CV[i-1,j]/(2*dxw_N[i,j]))*dy_CV[i,j]/dxw_N[i,j]
+            coeffsT[i,j,2] = (k[i,j+1]*dy_CV[i,j]/(2*dyn_N[i,j]) + k[i,j]*dy_CV[i,j+1]/(2*dyn_N[i,j]))*dx_CV[i,j]/dyn_N[i,j]
+            coeffsT[i,j,3] = (k[i,j-1]*dy_CV[i,j]/(2*dys_N[i,j]) + k[i,j]*dy_CV[i,j-1]/(2*dys_N[i,j]))*dx_CV[i,j]/dys_N[i,j]
             coeffsT[i,j,4] = coeffsT[i,j,0] + coeffsT[i,j,1] + coeffsT[i,j,2] + coeffsT[i,j,3] - S_P[i,j]
     i = 1
     j = 1
