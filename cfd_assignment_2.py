@@ -135,6 +135,7 @@ for i in range(1, nI - 1):
 # Hybrid scheme coefficients calculations (taking into account boundary conditions)
 for i in range(1, nI - 1):
     for j in range(1, nJ - 1):
+        # need to fix boundary still
         coeffsT[i, j, 0] = np.max([-F[i,j,0] ,0, (D[i,j,0] - F[i,j,0]/2)])
         coeffsT[i, j, 1] = np.max([F[i,j,1] ,0, (D[i,j,1] + F[i,j,1]/2)])
         coeffsT[i, j, 2] = np.max([-F[i,j,2] ,0, (D[i,j,2] - F[i,j,2]/2)])
