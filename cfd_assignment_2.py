@@ -12,7 +12,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 def ReadDataAndGeometry(caseID, grid_type):
     if caseID <= 5:
         grid_number = 1
@@ -83,7 +82,7 @@ def ReadDataAndGeometry(caseID, grid_type):
 grid_type = 'coarse'  # either 'coarse' or 'fine'
 caseID =  20# your case number to solve
 k = 1
-rho =  1# density
+rho = 1 # density
 nIterations =  1000# number of iterations
 Cp = 200
 plotVelocityVectors = True
@@ -111,6 +110,17 @@ T = np.zeros((nI, nJ))  # temperature matrix
 D = np.zeros((nI, nJ, 4))  # diffusive coefficients e, w, n and s
 F = np.zeros((nI, nJ, 4))  # convective coefficients e, w, n and s
 coeffsT = np.zeros((nI, nJ, 5))  # hybrid scheme coefficients E, W, N, S, P
+S_U = np.zeros((nI, nJ))
+S_P = np.zeros((nI, nJ))
+TD = -10 #C
+hai = [1]
+hbi = [23, 24, 25]
+hbi = [1]
+hbj = [1, 2, 3]
+hci = [24]
+hcj = [1, 2, 3]
+hdi = [11, 12, 13]
+hdj = [24]
 
 residuals = []
 
@@ -121,21 +131,68 @@ gamma = k / Cp
 ## Diffusive and convective coefficient calculations
 for i in range(1, nI - 1):
     for j in range(1, nJ - 1):
-        a = 1
-        D[i, j, 0] = gamma/dxe_N[i,j]# east diffusive
-        D[i, j, 1] = gamma/dxw_N[i,j] # west diffusive
-        D[i, j, 2] = gamma/dyn_N[i,j] # north diffusive
-        D[i, j, 3] = gamma/dys_N[i,j] # south diffusive
+        D[i, j, 0] = gamma/dxe_N[i] # east diffusive
+        D[i, j, 1] = gamma/dxw_N[i] # west diffusive
+        D[i, j, 2] = gamma/dyn_N[j] # north diffusive
+        D[i, j, 3] = gamma/dys_N[j] # south diffusive
 
-        F[i, j, 0] = rho*(U[i,j]+U[i+1,j])/2 # east convective
-        F[i, j, 1] = rho*(U[i,j]+U[i-1,j])/2 # weast convective
-        F[i, j, 2] = rho*(U[i,j]+U[i,j+1])/2 # north convective
-        F[i, j, 3] = rho*(U[i,j]+U[i,j-1])/2 # south convective
+        F[i, j, 0] = dy_CV[i,j]*rho*(U[i,j]+U[i+1,j])/2 # east convective
+        F[i, j, 1] = dy_CV[i,j]*rho*(U[i,j]+U[i-1,j])/2 # west convective
+        F[i, j, 2] = dx_CV[i,j]*rho*(V[i,j]+V[i,j+1])/2 # north convective
+        F[i, j, 3] = dx_CV[i,j]*rho*(V[i,j]+V[i,j-1])/2 # south convective
 
 # Hybrid scheme coefficients calculations (taking into account boundary conditions)
-for i in range(1, nI - 1):
-    for j in range(1, nJ - 1):
+
+for i in range(2, nI - 2):
+    y = [1,24]
+    for j in y:
+        coeffsT[i, j, 0] = np.max([-F[i, j, 0], 0, (D[i, j, 0] - F[i, j, 0] / 2)])
+        coeffsT[i, j, 1] = np.max([F[i, j, 1], 0, (D[i, j, 1] + F[i, j, 1] / 2)])
+        coeffsT[i, j, 2] = np.max([-F[i, j, 2], 0, (D[i, j, 2] - F[i, j, 2] / 2)])
+        coeffsT[i, j, 3] = np.max([F[i, j, 3], 0, (D[i, j, 3] + F[i, j, 3] / 2)])
         # need to fix boundary still
+        if i in hdi and j in hdj:
+            T = -10
+            S_P[i,j] -= (D[i,j,0] + D[i,j,1])
+            S_U[i,j] += T*()
+        elif j == 1:
+            q = 50  # W/m^2
+        else:
+            # neumann
+            coeffsT[i,j,2] = 0
+        delF = F[i, j, 0] - F[i, j, 1] + F[i, j, 2] - F[i, j, 3]
+        coeffsT[i, j, 4] = coeffsT[i, j, 0:4] + delF - S_P[i,j]
+
+for j in range(2, nJ - 2):
+    x = [1, 24]
+    for i in x:
+        coeffsT[i, j, 0] = np.max([-F[i, j, 0], 0, (D[i, j, 0] - F[i, j, 0] / 2)])
+        coeffsT[i, j, 1] = np.max([F[i, j, 1], 0, (D[i, j, 1] + F[i, j, 1] / 2)])
+        coeffsT[i, j, 2] = np.max([-F[i, j, 2], 0, (D[i, j, 2] - F[i, j, 2] / 2)])
+        coeffsT[i, j, 3] = np.max([F[i, j, 3], 0, (D[i, j, 3] + F[i, j, 3] / 2)])
+        if i in hai and j in haj:
+            t = -10
+        elif i in hbi and j in hbj:
+            # neumann
+            coeffsT[i,j,1] = 0
+        elif i in hci and j in hcj:
+            # neumann
+            coeffsT[i,j,0] = 0
+        elif i == 1:
+            T = 20
+        else:
+            if i == 1:
+                coeffsT[i, j, 1] = 0
+            else:
+                coeffsT[i, j, 0] = 0
+        delF = F[i, j, 0] - F[i, j, 1] + F[i, j, 2] - F[i, j, 3]
+        coeffsT[i, j, 4] = coeffsT[i, j, 0:4] + delF - S_P[i,j]
+
+
+
+
+for i in range(2, nI - 2):
+    for j in range(2, nJ - 2):
         coeffsT[i, j, 0] = np.max([-F[i,j,0] ,0, (D[i,j,0] - F[i,j,0]/2)])
         coeffsT[i, j, 1] = np.max([F[i,j,1] ,0, (D[i,j,1] + F[i,j,1]/2)])
         coeffsT[i, j, 2] = np.max([-F[i,j,2] ,0, (D[i,j,2] - F[i,j,2]/2)])
@@ -148,10 +205,31 @@ for iter in range(nIterations):
 
     # Solve for T using Gauss-Seidel or TDMA (both results need to be
     # presented)
-
+    for i in range(1, nI - 1):
+        for j in range(1, nJ - 1):
+            T[i, j] = (T[i + 1, j] * coeffsT[i, j, 0] + T[i - 1, j] * coeffsT[i, j, 1] + T[i, j + 1] * coeffsT[
+                i, j, 2] + T[i, j - 1] * coeffsT[i, j, 3] + S_U[i, j]) / coeffsT[i, j, 4]
     # Copy temperatures to boundaries
-    r = 0
+    T[0,0:23] = T[1,0:23]
+    T[0:11,25] = T[0:11,24]
+    T[14:26, 25] = T[14:26, 24]
+    T[25,:] = T[24,:]
     # Compute residuals (taking into account normalization)
+    temp_sum_r = 0
+    inlet = 0
+    outlet = 0
+    for i in range(1,nI-1):
+        for j in range(i,nJ-1):
+            temp_sum_r += abs(coeffsT[i, j, 4] * T[i, j] - (
+                    coeffsT[i, j, 0] * T[i + 1, j] + coeffsT[i, j, 1] * T[i - 1, j] + coeffsT[i, j, 2] * T[
+                i, j + 1] + coeffsT[i, j, 3] * T[i, j - 1] + S_U[i, j]))
+    for j in hdi:
+        inlet += abs(rho*V[i,25]*dx_CV[i,25]*TD)
+    for j in hbj:
+        outlet += abs(rho*U[0,j]*dy_CV[0,j]*T[0,j])
+        outlet += abs(rho*U[25,j]*dy_CV[25,j]*T[25,j])
+    F = abs(inlet_f - outlet_f)
+    r = temp_sum_r/F
     residuals.append(r)  # fill with your residual value for the
     # current iteration
 
