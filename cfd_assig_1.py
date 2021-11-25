@@ -101,7 +101,7 @@ T2 = 20
 
 # Solver inputs
 
-nIterations = 1000  # maximum number of iterations
+nIterations = 10000  # maximum number of iterations
 resTolerance = 0.001  # convergence criteria for residuals each variable
 
 # ====================== Code ======================
@@ -194,14 +194,17 @@ for i in range(nI):
 x = []
 for iter in range(nIterations):
     # Update conductivity coefficient matrix, k, according to your case
-    for i in range(nI):
-        for j in range(nJ):
-            k[i, j] = (16 * (yCoords_N[i, j] / yL + 30 * T[i, j] / T1))
+    k = (16 * (yCoords_N/yL + 30 * T/T1))
+    S_P = -c2 * 15 * T * dx_CV * dy_CV
+    S_U = c1 * 15 * dx_CV * dy_CV
+    #for i in range(nI):
+    #    for j in range(nJ):
+    #        k[i, j] = (16 * (yCoords_N[i, j] / yL + 30 * T[i, j] / T1))
     # Update source term matrix according to your case
-    for i in range(nI):
-        for j in range(nJ):
-            S_P[i, j] = -c2 * 15 * (T[i, j]) ** 2
-            S_U[i, j] = c1 * 15
+    #for i in range(nI):
+    #    for j in range(nJ):
+    #        S_P[i, j] = -c2 * 15 * (T[i, j])*dx_CV[i,j]*dy_CV[i,j]
+    #        S_U[i, j] = c1 * 15*dx_CV[i,j]*dy_CV[i,j]
     # Compute coeffsT for all the nodes which are not boundary nodes
     # compute boundary coefficients
     for i in range(2, nI - 2):
@@ -276,12 +279,12 @@ for iter in range(nIterations):
     x.append(iter)
     residuals.append(r)
 
-    print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
+    #print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
 
     #  Check convergence
     if resTolerance > residuals[-1]:
         break
-
+print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
 # Compute heat fluxes
 [dT_dx, dT_dy] = np.gradient(T, xCoords_N[:, 0], yCoords_N[0, :])
 
@@ -301,45 +304,47 @@ plt.title('Heat flux')
 
 # larger temperature plot
 plt.figure()
-plt.contour(np.flip(np.transpose(T), 0), levels=50)
-plt.title('Temperature [ºC]')
-plt.xlabel('x [ind]')
-plt.ylabel('y [ind]')
+plt.contourf(xCoords_N, yCoords_N, T)
+plt.colorbar()
+plt.title('Temperature')
+plt.xlabel('x [m]')
+plt.ylabel('y [m]')
+plt.show()
 
 # Subplots
-plt.figure()
-plt.suptitle(str(mI) + " by " + str(mJ) + " " + str(grid_type) + " mesh ")
+#plt.figure()
+#plt.suptitle(str(mI) + " by " + str(mJ) + " " + str(grid_type) + " mesh ")
 # Plot mesh
-plt.subplot(2, 2, 1)
-plt.plot(xCoords_M, yCoords_M)
-plt.plot(np.transpose(xCoords_M), np.transpose(yCoords_M))
-plt.xlabel('x [m]')
-plt.ylabel('y [m]')
-plt.title('Computational mesh')
-plt.axis('equal')
+#plt.subplot(2, 2, 1)
+#plt.plot(xCoords_M, yCoords_M)
+#plt.plot(np.transpose(xCoords_M), np.transpose(yCoords_M))
+#plt.xlabel('x [m]')
+#plt.ylabel('y [m]')
+#plt.title('Computational mesh')
+#plt.axis('equal')
 
 # Plot temperature contour
-plt.subplot(2, 2, 2)
-plt.contour(np.flip(np.transpose(T), 0), levels=50)
-plt.title('Temperature [ºC]')
-plt.xlabel('x [ind]')
-plt.ylabel('y [ind]')
-plt.axis('equal')
+#plt.subplot(2, 2, 2)
+#plt.contour(np.flip(np.transpose(T), 0), levels=50)
+#plt.title('Temperature [ºC]')
+#plt.xlabel('x [ind]')
+#plt.ylabel('y [ind]')
+#plt.axis('equal')
 
 # Plot residual convergence
-plt.subplot(2, 2, 3)
-plt.plot(x, residuals)
-plt.title('Residual convergence')
-plt.xlabel('iterations')
-plt.ylabel('residuals [-]')
-plt.title('Residual')
+#plt.subplot(2, 2, 3)
+#plt.plot(x, residuals)
+#plt.title('Residual convergence')
+#plt.xlabel('iterations')
+#plt.ylabel('residuals [-]')
+#plt.title('Residual')
 
 # Plot heat fluxes
-plt.subplot(2, 2, 4)
-plt.quiver(xCoords_N, yCoords_N, dT_dx, dT_dy)
-plt.xlabel('x [m]')
-plt.ylabel('y [m]')
-plt.title('Heat flux')
-plt.axis('equal')
+#plt.subplot(2, 2, 4)
+#plt.quiver(xCoords_N, yCoords_N, dT_dx, dT_dy)
+#plt.xlabel('x [m]')
+#plt.ylabel('y [m]')
+#plt.title('Heat flux')
+#plt.axis('equal')
 
 plt.show()
