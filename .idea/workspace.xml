@@ -147,7 +147,14 @@
       <option name="project" value="LOCAL" />
       <updated>1637855556178</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="fixed Su Sp and nicer plots">
+      <created>1637878581510</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1637878581510</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -167,7 +174,8 @@
     <MESSAGE value="commit" />
     <MESSAGE value="boundary for coeffs and solving left" />
     <MESSAGE value="working version" />
-    <option name="LAST_COMMIT_MESSAGE" value="working version" />
+    <MESSAGE value="fixed Su Sp and nicer plots" />
+    <option name="LAST_COMMIT_MESSAGE" value="fixed Su Sp and nicer plots" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -176,11 +184,6 @@
           <url>file://$PROJECT_DIR$/cfd_assignment_2.py</url>
           <line>300</line>
           <option name="timeStamp" value="15" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/cfd_assig_1.py</url>
-          <line>193</line>
-          <option name="timeStamp" value="16" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

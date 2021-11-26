@@ -89,8 +89,8 @@ def dirichlet_function(x, y, boundaries):
 
 # Geometric inputs
 
-mI = 40  # number of mesh points X direction.
-mJ = 40  # number of mesh points Y direction.
+mI = 20  # number of mesh points X direction.
+mJ = 20  # number of mesh points Y direction.
 grid_type = 'equidistant'  # this sets equidistant mesh sizing or non-equidistant
 xL = 1  # length of the domain in X direction
 yL = 7  # length of the domain in Y direction
@@ -309,31 +309,36 @@ plt.colorbar()
 plt.title('Temperature')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
-plt.show()
+
+# residual plot
+plt.figure()
+plt.semilogy(residuals)
+plt.title('Residual convergence')
+plt.xlabel('iterations')
+plt.ylabel('residuals [-]')
+plt.title('Residual')
 
 # Subplots
-#plt.figure()
-#plt.suptitle(str(mI) + " by " + str(mJ) + " " + str(grid_type) + " mesh ")
+plt.figure()
+plt.suptitle(str(mI) + " by " + str(mJ) + " " + str(grid_type) + " mesh ")
 # Plot mesh
-#plt.subplot(2, 2, 1)
-#plt.plot(xCoords_M, yCoords_M)
-#plt.plot(np.transpose(xCoords_M), np.transpose(yCoords_M))
-#plt.xlabel('x [m]')
-#plt.ylabel('y [m]')
-#plt.title('Computational mesh')
-#plt.axis('equal')
+plt.subplot(1, 2, 1)
+plt.quiver(xCoords_N, yCoords_N, dT_dx, dT_dy)
+plt.xlabel('x [m]')
+plt.ylabel('y [m]')
+plt.title('Heat flux')
 
 # Plot temperature contour
-#plt.subplot(2, 2, 2)
-#plt.contour(np.flip(np.transpose(T), 0), levels=50)
-#plt.title('Temperature [ºC]')
-#plt.xlabel('x [ind]')
-#plt.ylabel('y [ind]')
-#plt.axis('equal')
+plt.subplot(1, 2, 2)
+plt.contourf(xCoords_N, yCoords_N, T)
+plt.colorbar()
+plt.title('Temperature')
+plt.xlabel('x [m]')
+plt.ylabel('y [m]')
 
 # Plot residual convergence
 #plt.subplot(2, 2, 3)
-#plt.plot(x, residuals)
+#plt.semilogx(x, residuals)
 #plt.title('Residual convergence')
 #plt.xlabel('iterations')
 #plt.ylabel('residuals [-]')
