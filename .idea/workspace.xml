@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="0c55543f-6e3b-4fe4-bfea-94845b496734" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cfd_assig_1.py" beforeDir="false" afterPath="$PROJECT_DIR$/cfd_assig_1.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cfd_assignment_2.py" beforeDir="false" afterPath="$PROJECT_DIR$/cfd_assignment_2.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,7 +25,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/cfd_assig_1.py" />
   </component>
-  <component name="RunManager" selected="Python.cfd_assig_1">
+  <component name="RunManager" selected="Python.cfd_assignment_2">
     <configuration name="cfd_assig_1" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -70,8 +70,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.cfd_assig_1" />
         <item itemvalue="Python.cfd_assignment_2" />
+        <item itemvalue="Python.cfd_assig_1" />
       </list>
     </recent_temporary>
   </component>
@@ -154,7 +154,14 @@
       <option name="project" value="LOCAL" />
       <updated>1637878581510</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="completely fixed version of A1">
+      <created>1637922505213</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1637922505213</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -175,14 +182,15 @@
     <MESSAGE value="boundary for coeffs and solving left" />
     <MESSAGE value="working version" />
     <MESSAGE value="fixed Su Sp and nicer plots" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed Su Sp and nicer plots" />
+    <MESSAGE value="completely fixed version of A1" />
+    <option name="LAST_COMMIT_MESSAGE" value="completely fixed version of A1" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/cfd_assignment_2.py</url>
-          <line>300</line>
+          <line>330</line>
           <option name="timeStamp" value="15" />
         </line-breakpoint>
       </breakpoints>

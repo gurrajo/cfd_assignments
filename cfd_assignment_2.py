@@ -121,6 +121,16 @@ hci = [24]
 hcj = [1, 2, 3]
 hdi = [11, 12, 13]
 hdj = [24]
+dir_bound_i = [hdi + hai + [1]]
+dir_bound_j = [np.linspace(1,nJ-1,nJ-1)]
+q_bound_i = [np.linspace(1,nI-1,nI-1)]
+q_bound_j = [1]
+q = 50
+T[[0],23:26] = -10
+T[hdi,[25]] = -10
+T[[0],3:23] = 20
+
+# rest is homogeneous neumann
 
 residuals = []
 
@@ -149,7 +159,7 @@ for i in range(2, nI - 2):
         coeffsT[i, j, 1] = np.max([F[i, j, 1], 0, (D[i, j, 1] + F[i, j, 1] / 2)])
         coeffsT[i, j, 2] = np.max([-F[i, j, 2], 0, (D[i, j, 2] - F[i, j, 2] / 2)])
         coeffsT[i, j, 3] = np.max([F[i, j, 3], 0, (D[i, j, 3] + F[i, j, 3] / 2)])
-        # need to fix boundary still
+
         if i in hdi and j in hdj:
             Tb = -10
             S_P[i,j] -= D[i,j,2] + F[i,j,2]
@@ -249,7 +259,27 @@ for iter in range(nIterations):
     # Impose boundary conditions
 
     # Solve for T using Gauss-Seidel or TDMA (both results need to be
-    # presented)
+    for j in range(1,nJ-1):
+        for i in range(nI-2,0):
+            if i == 1:
+                if i in q_bound_i and j in q_bound_j:
+                    a = 1
+                elif i in dir_bound_i and j in dir_bound_j:
+                    Tb = T[0,j]
+                    c = coeffsT[i,j,1]
+                    Q = d+c*Tb/coeffsT[i,j,4]
+                else:
+                    c = 0
+                P = coeffsT[i,j,0]/coeffsT[i,j,4];
+                d = coeffsT[i, j, 2] * T[i, j + 1] + coeffsT[i, j, 3] * T[i, j - 1] + S_U[i, j]
+                Q = d/coeffsT
+            elif i == nI-2:
+                P = 0;
+                Q = (d + C*Q_next + b*T_pre)/(a-c*P_next)
+            else:
+                di = coeffsT[i,j,2]*T[i,j+1] + coeffsT[i,j,3]*T[i,j-1] + S_U[i,j]
+
+
     for i in range(1, nI - 1):
         for j in range(1, nJ - 1):
             T[i, j] = (T[i + 1, j] * coeffsT[i, j, 0] + T[i - 1, j] * coeffsT[i, j, 1] + T[i, j + 1] * coeffsT[i, j, 2] + T[i, j - 1] * coeffsT[i, j, 3] + S_U[i, j]) / coeffsT[i, j, 4]
