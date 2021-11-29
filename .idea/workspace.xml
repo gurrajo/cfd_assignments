@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="0c55543f-6e3b-4fe4-bfea-94845b496734" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cfd_assig_1.py" beforeDir="false" afterPath="$PROJECT_DIR$/cfd_assig_1.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cfd_assignment_2.py" beforeDir="false" afterPath="$PROJECT_DIR$/cfd_assignment_2.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -161,7 +162,14 @@
       <option name="project" value="LOCAL" />
       <updated>1637922505213</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="not complete">
+      <created>1638182904375</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1638182904375</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -183,15 +191,21 @@
     <MESSAGE value="working version" />
     <MESSAGE value="fixed Su Sp and nicer plots" />
     <MESSAGE value="completely fixed version of A1" />
-    <option name="LAST_COMMIT_MESSAGE" value="completely fixed version of A1" />
+    <MESSAGE value="not complete" />
+    <option name="LAST_COMMIT_MESSAGE" value="not complete" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/cfd_assignment_2.py</url>
-          <line>330</line>
+          <line>366</line>
           <option name="timeStamp" value="15" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/cfd_assig_1.py</url>
+          <line>194</line>
+          <option name="timeStamp" value="17" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

@@ -87,7 +87,7 @@ nIterations =  1000# number of iterations
 Cp = 200
 plotVelocityVectors = True
 resTolerance = 0.001
-
+TDMA = True
 # Read data for velocity fields and geometrical quantities
 
 # For all the matrices the first input makes reference to the x coordinate
@@ -113,22 +113,20 @@ coeffsT = np.zeros((nI, nJ, 5))  # hybrid scheme coefficients E, W, N, S, P
 S_U = np.zeros((nI, nJ))
 S_P = np.zeros((nI, nJ))
 TD = -10 #C
-hai = [1]
-haj = [22, 23, 24]
-hbi = [1]
-hbj = [1, 2, 3]
-hci = [24]
-hcj = [1, 2, 3]
-hdi = [11, 12, 13]
-hdj = [24]
-dir_bound_i = [hdi + hai + [1]]
-dir_bound_j = [np.linspace(1,nJ-1,nJ-1)]
-q_bound_i = [np.linspace(1,nI-1,nI-1)]
-q_bound_j = [1]
+hai = np.array([1])
+haj = np.array([22, 23, 24])
+hbi = np.array([1])
+hbj = np.array([1, 2, 3])
+hci = np.array([24])
+hcj = np.array([1, 2, 3])
+hdi = np.array([11, 12, 13])
+hdj = np.array([24])
+dir_bound_i = np.array([1, 11, 12, 13])
+dir_bound_j = np.array(np.linspace(4,nJ-1,nJ-4))
 q = 50
 T[[0],23:26] = -10
 T[hdi,[25]] = -10
-T[[0],3:23] = 20
+T[[0],4:23] = 20
 
 # rest is homogeneous neumann
 
@@ -259,32 +257,70 @@ for iter in range(nIterations):
     # Impose boundary conditions
 
     # Solve for T using Gauss-Seidel or TDMA (both results need to be
-    for j in range(1,nJ-1):
-        for i in range(nI-2,0):
-            if i == 1:
-                if i in q_bound_i and j in q_bound_j:
-                    a = 1
-                elif i in dir_bound_i and j in dir_bound_j:
-                    Tb = T[0,j]
-                    c = coeffsT[i,j,1]
-                    Q = d+c*Tb/coeffsT[i,j,4]
-                else:
-                    c = 0
-                P = coeffsT[i,j,0]/coeffsT[i,j,4];
+    if TDMA:
+        for j in range(1,nJ-1):
+            P = np.zeros((nI,1))
+            Q = np.zeros((nI, 1))
+            for i in range(1,nI-1):
                 d = coeffsT[i, j, 2] * T[i, j + 1] + coeffsT[i, j, 3] * T[i, j - 1] + S_U[i, j]
-                Q = d/coeffsT
-            elif i == nI-2:
-                P = 0;
-                Q = (d + C*Q_next + b*T_pre)/(a-c*P_next)
-            else:
-                di = coeffsT[i,j,2]*T[i,j+1] + coeffsT[i,j,3]*T[i,j-1] + S_U[i,j]
+                if i == 1:
+                    if i in dir_bound_i and j in dir_bound_j:
+                        Tb = T[0,j]
+                        P[i] = coeffsT[i,j,0]/coeffsT[i,j,4]
+                        Q[i] = (d+coeffsT[i,j,1]*Tb)/coeffsT[i,j,4]
+                    else:
+                        # neumann
+                        P[i] = coeffsT[i,j,0]/coeffsT[i,j,4]
+                        Q[i] = d/coeffsT[i,j,4]
+                elif i == nI - 2:
+                    if i in dir_bound_i and j in dir_bound_j:
+                        P[i] = 0
+                        Q[i] = (d + coeffsT[i,j,1] * Q[i-1] + coeffsT[i,j,0] * T[i+1,j]) / (coeffsT[i,j,4] - coeffsT[i,j,1] * P[i-1])
+                    else:
+                        # neumann
+                        P[i] = 0
+                        Q[i] = (d + coeffsT[i,j,1] * Q[i-1])/ (coeffsT[i,j,4] - coeffsT[i,j,1] * P[i-1])
+                else:
+                    P[i] = coeffsT[i,j,0]/(coeffsT[i,j,4] - coeffsT[i,j,1]*P[i-1])
+                    d = coeffsT[i, j, 2] * T[i, j + 1] + coeffsT[i, j, 3] * T[i, j - 1] + S_U[i, j]
+                    Q[i] = (d + coeffsT[i,j,1]*Q[i-1])/(coeffsT[i,j,4] - coeffsT[i,j,1]*P[i-1])
+            for i in range(nI-2,0,-1):
+                T[i,j] = P[i]*T[i+1,j] + Q[i]
 
-
-    for i in range(1, nI - 1):
-        for j in range(1, nJ - 1):
-            T[i, j] = (T[i + 1, j] * coeffsT[i, j, 0] + T[i - 1, j] * coeffsT[i, j, 1] + T[i, j + 1] * coeffsT[i, j, 2] + T[i, j - 1] * coeffsT[i, j, 3] + S_U[i, j]) / coeffsT[i, j, 4]
+        for i in range(1,nI-1):
+            P = np.zeros((nJ,1))
+            Q = np.zeros((nJ,1))
+            for j in range(1,nJ-1):
+                d = coeffsT[i, j, 0] * T[i + 1, j] + coeffsT[i, j, 1] * T[i - 1, j] + S_U[i, j]
+                if j == 1:
+                    if i in dir_bound_i and j in dir_bound_j:
+                        Tb = T[i,0]
+                        P[j] = coeffsT[i,j,2]/coeffsT[i,j,4]
+                        Q[j] = (d+coeffsT[i,j,3]*Tb)/coeffsT[i,j,4]
+                    else:
+                        # neumann
+                        P[j] = coeffsT[i,j,2]/coeffsT[i,j,4]
+                        Q[j] = d/coeffsT[i,j,4]
+                elif j == nJ - 2:
+                    if i in dir_bound_i and j in dir_bound_j:
+                        P[j] = 0
+                        Q[j] = (d + coeffsT[i,j,3] * Q[j-1] + coeffsT[i,j,2] * T[i,j+1]) / (coeffsT[i,j,4] - coeffsT[i,j,3] * P[j-1])
+                    else:
+                        # neumann
+                        P[j] = 0
+                        Q[j] = (d + coeffsT[i,j,3] * Q[j-1])/(coeffsT[i,j,4] - coeffsT[i,j,3] * P[j-1])
+                else:
+                    P[j] = coeffsT[i,j,2]/(coeffsT[i,j,4] - coeffsT[i,j,3]*P[j-1])
+                    Q[j] = (d + coeffsT[i,j,3]*Q[j-1])/(coeffsT[i,j,4] - coeffsT[i,j,3]*P[j-1])
+            for j in range(nJ-2,0,-1):
+                T[i,j] = P[j]*T[i,j+1] + Q[j]
+    else:
+        for i in range(1, nI - 1):
+            for j in range(1, nJ - 1):
+                T[i, j] = (T[i + 1, j] * coeffsT[i, j, 0] + T[i - 1, j] * coeffsT[i, j, 1] + T[i, j + 1] * coeffsT[i, j, 2] + T[i, j - 1] * coeffsT[i, j, 3] + S_U[i, j]) / coeffsT[i, j, 4]
     # Copy temperatures to boundaries
-    T[0,0:23] = T[1,0:23]
+    T[0,0:5] = T[1,0:5]
+    T[0,23:27] = T[1,23:27]
     T[0:11,25] = T[0:11,24]
     T[14:26, 25] = T[14:26, 24]
     T[25,:] = T[24,:]

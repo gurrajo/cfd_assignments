@@ -71,9 +71,9 @@ def dirichlet_function(x, y, boundaries):
             S_U[x, y] += T2 * kb * dy_CV[x, y] / dxe_N[x, y]
         elif boundary == 1:
             continue  # neumann
-            # kb = k[x - 1, y]
-            # S_P[x, y] -= kb * dy_CV[x, y] / dxw_N[x, y]
-            # S_U[x, y] += 5 * kb * dy_CV[x, y] / dxw_N[x, y]
+            #kb = k[x - 1, y]
+            #S_P[x, y] -= kb * dy_CV[x, y] / dxw_N[x, y]
+            #S_U[x, y] += 5 * kb * dy_CV[x, y] / dxw_N[x, y]
         elif boundary == 2:
             kb = k[x, y + 1]
             S_P[x, y] -= kb * dx_CV[x, y] / dyn_N[x, y]
@@ -184,7 +184,7 @@ dys_N[:, 1:nJ] = np.diff(yCoords_N)
 # Initialize variable matrices and boundary conditions
 T[-1, :] = T2  # boundary 2
 T[:, 0] = T1  # boundary 1
-# T[0,:] = 5 # boundary 4 when changed from neumann
+#T[0,:] = 5 # boundary 4 when changed from neumann
 
 # boundary 3
 for i in range(nI):
@@ -194,17 +194,10 @@ for i in range(nI):
 x = []
 for iter in range(nIterations):
     # Update conductivity coefficient matrix, k, according to your case
-    k = (16 * (yCoords_N/yL + 30 * T/T1))
+    k = (16 * (yCoords_N/yL + 30 * T/T1))*100
     S_P = -c2 * 15 * T * dx_CV * dy_CV
     S_U = c1 * 15 * dx_CV * dy_CV
-    #for i in range(nI):
-    #    for j in range(nJ):
-    #        k[i, j] = (16 * (yCoords_N[i, j] / yL + 30 * T[i, j] / T1))
-    # Update source term matrix according to your case
-    #for i in range(nI):
-    #    for j in range(nJ):
-    #        S_P[i, j] = -c2 * 15 * (T[i, j])*dx_CV[i,j]*dy_CV[i,j]
-    #        S_U[i, j] = c1 * 15*dx_CV[i,j]*dy_CV[i,j]
+
     # Compute coeffsT for all the nodes which are not boundary nodes
     # compute boundary coefficients
     for i in range(2, nI - 2):
@@ -279,12 +272,12 @@ for iter in range(nIterations):
     x.append(iter)
     residuals.append(r)
 
-    #print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
+    print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
 
     #  Check convergence
     if resTolerance > residuals[-1]:
         break
-print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
+#print('iteration: %d\nresT = %.5e\n\n' % (iter, residuals[-1]))
 # Compute heat fluxes
 [dT_dx, dT_dy] = np.gradient(T, xCoords_N[:, 0], yCoords_N[0, :])
 
