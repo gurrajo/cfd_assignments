@@ -79,15 +79,15 @@ def ReadDataAndGeometry(caseID, grid_type):
 
 # Inputs
 
-grid_type = 'coarse'  # either 'coarse' or 'fine'
-caseID =  20# your case number to solve
+grid_type = 'fine'  # either 'coarse' or 'fine'
+caseID = 20 # your case number to solve
 k = 1
 rho = 1 # density
-nIterations =  1000# number of iterations
+nIterations = 10000 # number of iterations
 Cp = 200
-plotVelocityVectors = True
+plotVelocityVectors = False
 resTolerance = 0.001
-TDMA = True
+TDMA = False
 # Read data for velocity fields and geometrical quantities
 
 # For all the matrices the first input makes reference to the x coordinate
@@ -106,27 +106,28 @@ if plotVelocityVectors:
     plt.show()
 
 # Allocate needed vairables
-T = np.zeros((nI, nJ))  # temperature matrix
+T = np.ones((nI, nJ))*273.15  # temperature matrix
 D = np.zeros((nI, nJ, 4))  # diffusive coefficients e, w, n and s
 F = np.zeros((nI, nJ, 4))  # convective coefficients e, w, n and s
 coeffsT = np.zeros((nI, nJ, 5))  # hybrid scheme coefficients E, W, N, S, P
 S_U = np.zeros((nI, nJ))
 S_P = np.zeros((nI, nJ))
-TD = -10 #C
+TD = 263.15 #K
+
 hai = np.array([1])
-haj = np.array([22, 23, 24])
+haj = np.array([45, 46, 47, 48])
 hbi = np.array([1])
-hbj = np.array([1, 2, 3])
-hci = np.array([24])
-hcj = np.array([1, 2, 3])
-hdi = np.array([11, 12, 13])
-hdj = np.array([24])
-dir_bound_i = np.array([1, 11, 12, 13])
+hbj = np.array([1, 2, 3, 4, 5, 6])
+hci = np.array([48])
+hcj = np.array([1, 2, 3, 4, 5, 6])
+hdi = np.array([23, 24, 25, 26])
+hdj = np.array([48])
+dir_bound_i = np.array([1, 23, 24, 25, 26])
 dir_bound_j = np.array(np.linspace(4,nJ-1,nJ-4))
 q = 50
-T[[0],23:26] = -10
-T[hdi,[25]] = -10
-T[[0],4:23] = 20
+T[[0],45:50] = 263.15
+T[hdi,[49]] = 263.15
+T[[0],7:45] = 293.15
 
 # rest is homogeneous neumann
 
@@ -151,7 +152,7 @@ for i in range(1, nI - 1):
 # Hybrid scheme coefficients calculations (taking into account boundary conditions)
 
 for i in range(2, nI - 2):
-    y = [1,24]
+    y = [1,48]
     for j in y:
         coeffsT[i, j, 0] = np.max([-F[i, j, 0], 0, (D[i, j, 0] - F[i, j, 0] / 2)])
         coeffsT[i, j, 1] = np.max([F[i, j, 1], 0, (D[i, j, 1] + F[i, j, 1] / 2)])
@@ -159,12 +160,13 @@ for i in range(2, nI - 2):
         coeffsT[i, j, 3] = np.max([F[i, j, 3], 0, (D[i, j, 3] + F[i, j, 3] / 2)])
 
         if i in hdi and j in hdj:
-            Tb = -10
+            Tb = 263.15
             S_P[i,j] -= D[i,j,2] + F[i,j,2]
             S_U[i,j] += Tb*(D[i,j,2] + F[i,j,2])
         elif j == 1:
             q = 50  # W/m^2
-            coeffsT[i,j,3] = q*dx_CV[i]
+            S_U[i,j] = q*dx_CV[i]
+            coeffsT[i,j,3] = D[i,j,3]*50*dx_CV[i]
         else:
             # neumann
             coeffsT[i,j,2] = 0
@@ -172,7 +174,7 @@ for i in range(2, nI - 2):
         coeffsT[i, j, 4] = np.sum(coeffsT[i, j, 0:4]) + delF - S_P[i,j]
 
 for j in range(2, nJ - 2):
-    x = [1, 24]
+    x = [1, 48]
     for i in x:
         coeffsT[i, j, 0] = np.max([-F[i, j, 0], 0, (D[i, j, 0] - F[i, j, 0] / 2)])
         coeffsT[i, j, 1] = np.max([F[i, j, 1], 0, (D[i, j, 1] + F[i, j, 1] / 2)])
@@ -180,7 +182,7 @@ for j in range(2, nJ - 2):
         coeffsT[i, j, 3] = np.max([F[i, j, 3], 0, (D[i, j, 3] + F[i, j, 3] / 2)])
         if i in hai and j in haj:
             coeffsT[i, j, 1] = 0
-            Tb = -10
+            Tb = 263.15
             S_P[i, j] -= D[i, j, 1]
             S_U[i, j] += Tb*D[i, j, 1]
         elif i in hbi and j in hbj:
@@ -190,7 +192,7 @@ for j in range(2, nJ - 2):
             # neumann
             coeffsT[i,j,0] = 0
         elif i == 1:
-            Tb = 20
+            Tb = 293.15
             S_P[i, j] -= D[i, j, 1]
             S_U[i, j] += Tb * D[i, j, 1]
         else:
@@ -208,41 +210,45 @@ q = 50  # W/m^2
 coeffsT[i, j, 0] = np.max([-F[i,j,0] ,0, (D[i,j,0] - F[i,j,0]/2)])
 coeffsT[i, j, 1] = 0
 coeffsT[i, j, 2] = np.max([-F[i,j,2] ,0, (D[i,j,2] - F[i,j,2]/2)])
-coeffsT[i, j, 3] = q*dx_CV[i]
+coeffsT[i, j, 3] = np.max([F[i, j, 3], 0, (D[i, j, 3] + F[i, j, 3] / 2)])
 delF = F[i,j,0] - F[i,j,1] + F[i,j,2] - F[i,j,3]
 coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4]) + delF
+S_U[i,j] = q*dx_CV[i]
 
 # top_left
 i = 1
-j = 24
+j = 48
 coeffsT[i, j, 0] = np.max([-F[i,j,0] ,0, (D[i,j,0] - F[i,j,0]/2)])
 coeffsT[i, j, 1] = 0
 coeffsT[i, j, 2] = 0
 coeffsT[i, j, 3] = np.max([F[i,j,3] ,0, (D[i,j,3] + F[i,j,3]/2)])
-Tb = -10
+Tb = 263.15
 S_P[i, j] -= D[i, j, 1]
 S_U[i, j] += Tb * D[i, j, 1]
 delF = F[i,j,0] - F[i,j,1] + F[i,j,2] - F[i,j,3]
 coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4]) + delF -S_P[i,j]
 
 # top_right
-i = 24
-j = 24
+i = 48
+j = 48
 coeffsT[i, j, 0] = 0
 coeffsT[i, j, 1] = np.max([F[i,j,1] ,0, (D[i,j,1] + F[i,j,1]/2)])
 coeffsT[i, j, 2] = 0
-coeffsT[i, j, 3] = q*dx_CV[i]
+coeffsT[i, j, 3] = np.max([F[i, j, 3], 0, (D[i, j, 3] + F[i, j, 3] / 2)])
+delF = F[i,j,0] - F[i,j,1] + F[i,j,2] - F[i,j,3]
 coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4]) + delF
 
 
 # bot_right
-i = 24
+i = 48
 j = 1
 coeffsT[i, j, 0] = 0
 coeffsT[i, j, 1] = np.max([F[i,j,1] ,0, (D[i,j,1] + F[i,j,1]/2)])
 coeffsT[i, j, 2] = np.max([-F[i,j,2] ,0, (D[i,j,2] - F[i,j,2]/2)])
 coeffsT[i, j, 3] = 0
+delF = F[i,j,0] - F[i,j,1] + F[i,j,2] - F[i,j,3]
 coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4]) + delF
+S_U[i,j] = q*dx_CV[i]
 
 for i in range(2, nI - 2):
     for j in range(2, nJ - 2):
@@ -319,11 +325,12 @@ for iter in range(nIterations):
             for j in range(1, nJ - 1):
                 T[i, j] = (T[i + 1, j] * coeffsT[i, j, 0] + T[i - 1, j] * coeffsT[i, j, 1] + T[i, j + 1] * coeffsT[i, j, 2] + T[i, j - 1] * coeffsT[i, j, 3] + S_U[i, j]) / coeffsT[i, j, 4]
     # Copy temperatures to boundaries
-    T[0,0:5] = T[1,0:5]
-    T[0,23:27] = T[1,23:27]
-    T[0:11,25] = T[0:11,24]
-    T[14:26, 25] = T[14:26, 24]
-    T[25,:] = T[24,:]
+    T[0,0:7] = T[1,0:7]
+    #T[0,46:50] = T[1,46:50]
+    T[0:23,49] = T[0:23,48]
+    T[27:50, 49] = T[27:50, 48]
+    T[49,:] = T[48,:]
+    T[:,0] = T[:,1] # needs to be looked at
     # Compute residuals (taking into account normalization)
     temp_sum_r = 0
     inlet_f = 0
@@ -331,11 +338,11 @@ for iter in range(nIterations):
     for i in range(1,nI-1):
         for j in range(i,nJ-1):
             temp_sum_r += abs(coeffsT[i, j, 4] * T[i, j] - (coeffsT[i, j, 0] * T[i + 1, j] + coeffsT[i, j, 1] * T[i - 1, j] + coeffsT[i, j, 2] * T[i, j + 1] + coeffsT[i, j, 3] * T[i, j - 1] + S_U[i, j]))
-    for j in hdi:
-        inlet_f += abs(rho*V[i,25]*dx_CV[i]*TD)
+    for i in hdi:
+        inlet_f += abs(rho*V[i,49]*dx_CV[i]*TD)
     for j in hbj:
-        outlet_f += abs(rho*U[0,j]*dy_CV[j]*T[0,j])
-        outlet_f += abs(rho*U[25,j]*dy_CV[j]*T[25,j])
+        outlet_f -= abs(rho*U[0,j]*dy_CV[j]*T[0,j])
+        outlet_f -= abs(rho*U[49,j]*dy_CV[j]*T[49,j])
     F = abs(inlet_f - outlet_f)
     r = temp_sum_r/F
     residuals.append(r)  # fill with your residual value for the
@@ -347,8 +354,37 @@ for iter in range(nIterations):
 
     if resTolerance > residuals[-1]:
         break
+# check global conservation
+
+
 
 # Plotting (these are some examples, more plots might be needed)
+[dT_dx, dT_dy] = np.gradient(T, xCoords_N[:,0], yCoords_N[:,0])
+
+global_con = 0
+global_con_2 = 0
+for i in hdi:
+    global_con += abs(rho * V[i, 49] * dx_CV[i] * TD)
+    global_con += gamma*dT_dy[i,49]
+    global_con_2 += abs(rho * V[i, 49] * dx_CV[i] * TD)
+    global_con_2 += abs(gamma * dT_dy[i, 49])
+for i in range(1, nI - 1):
+    global_con += gamma*dT_dy[i,0]
+    global_con_2 += abs(gamma * dT_dy[i, 0])
+for j in range(7,50):
+    global_con += gamma*dT_dx[0,j]
+    global_con_2 += abs(gamma * dT_dx[0, j])
+for j in hbj:
+    global_con -= abs(rho * U[0, j] * dy_CV[j] * T[0, j])
+    global_con -= abs(rho * U[49, j] * dy_CV[j] * T[49, j])
+    global_con_2 += abs(rho * U[0, j] * dy_CV[j] * T[0, j])
+    global_con_2 += abs(rho * U[49, j] * dy_CV[j] * T[49, j])
+print(global_con)
+print(global_con_2)
+print(global_con_2/global_con)
+
+plt.figure()
+plt.quiver(np.ones((43,1)), yCoords_N[7:50], dT_dx[1,7:50], dT_dy[1,7:50])
 xv, yv = np.meshgrid(xCoords_N, yCoords_N)
 
 plt.figure()
@@ -356,12 +392,21 @@ plt.quiver(xv, yv, U.T, V.T)
 plt.title('Velocity vectors')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
-plt.show()
 
 plt.figure()
-plt.contourf(xv, yv, T)
+plt.suptitle("grid type:" + str(grid_type) + " | Solver: " + "Gauss-seidel")
+plt.subplot(1, 2, 1)
+plt.contourf(yv, xv, T)
 plt.colorbar()
 plt.title('Temperature')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
+
+plt.subplot(1, 2, 2)
+plt.semilogy(residuals)
+plt.title('Residual convergence')
+plt.xlabel('iterations')
+plt.ylabel('residuals [-]')
+plt.title('Residual')
+
 plt.show()
