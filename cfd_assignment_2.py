@@ -83,11 +83,11 @@ grid_type = 'fine'  # either 'coarse' or 'fine'
 caseID = 20 # your case number to solve
 k = 1
 rho = 1 # density
-nIterations = 1000 # number of iterations
+nIterations = 10000 # number of iterations
 Cp = 200
 plotVelocityVectors = False
 resTolerance = 0.001
-TDMA = True
+TDMA = False
 # Read data for velocity fields and geometrical quantities
 
 # For all the matrices the first input makes reference to the x coordinate
@@ -163,10 +163,11 @@ for i in range(2, nI - 2):
             Tb = 263.15
             S_P[i,j] -= D[i,j,2] + F[i,j,2]
             S_U[i,j] += Tb*(D[i,j,2] + F[i,j,2])
+            coeffsT[i,j,2] = 0
         elif j == 1:
             q = 50  # W/m^2
             S_U[i,j] = q*dx_CV[i]
-            coeffsT[i,j,3] = D[i,j,3]*50*dx_CV[i]
+            coeffsT[i,j,3] = 0
         else:
             # neumann
             coeffsT[i,j,2] = 0
@@ -195,6 +196,7 @@ for j in range(2, nJ - 2):
             Tb = 293.15
             S_P[i, j] -= D[i, j, 1]
             S_U[i, j] += Tb * D[i, j, 1]
+            coeffsT[i,j,1] = 0
         else:
             if i == 1:
                 coeffsT[i, j, 1] = 0
@@ -210,7 +212,7 @@ q = 50  # W/m^2
 coeffsT[i, j, 0] = np.max([-F[i,j,0] ,0, (D[i,j,0] - F[i,j,0]/2)])
 coeffsT[i, j, 1] = 0
 coeffsT[i, j, 2] = np.max([-F[i,j,2] ,0, (D[i,j,2] - F[i,j,2]/2)])
-coeffsT[i, j, 3] = np.max([F[i, j, 3], 0, (D[i, j, 3] + F[i, j, 3] / 2)])
+coeffsT[i, j, 3] = 0
 delF = F[i,j,0] - F[i,j,1] + F[i,j,2] - F[i,j,3]
 coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4]) + delF
 S_U[i,j] = q*dx_CV[i]

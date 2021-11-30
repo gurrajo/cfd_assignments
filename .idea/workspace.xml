@@ -226,7 +226,14 @@
       <option name="project" value="LOCAL" />
       <updated>1638296884513</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="still not finished">
+      <created>1638306166895</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1638306166895</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -251,7 +258,8 @@
     <MESSAGE value="not complete" />
     <MESSAGE value="fixed TDMA" />
     <MESSAGE value="not working currently" />
-    <option name="LAST_COMMIT_MESSAGE" value="not working currently" />
+    <MESSAGE value="still not finished" />
+    <option name="LAST_COMMIT_MESSAGE" value="still not finished" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -260,11 +268,6 @@
           <url>file://$PROJECT_DIR$/cfd_assig_1.py</url>
           <line>194</line>
           <option name="timeStamp" value="17" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/cfd_assignment_2.py</url>
-          <line>133</line>
-          <option name="timeStamp" value="21" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
