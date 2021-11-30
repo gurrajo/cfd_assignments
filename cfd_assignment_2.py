@@ -83,11 +83,11 @@ grid_type = 'fine'  # either 'coarse' or 'fine'
 caseID = 20 # your case number to solve
 k = 1
 rho = 1 # density
-nIterations = 10000 # number of iterations
+nIterations = 1000 # number of iterations
 Cp = 200
 plotVelocityVectors = False
 resTolerance = 0.001
-TDMA = False
+TDMA = True
 # Read data for velocity fields and geometrical quantities
 
 # For all the matrices the first input makes reference to the x coordinate
@@ -123,7 +123,7 @@ hcj = np.array([1, 2, 3, 4, 5, 6])
 hdi = np.array([23, 24, 25, 26])
 hdj = np.array([48])
 dir_bound_i = np.array([1, 23, 24, 25, 26])
-dir_bound_j = np.array(np.linspace(4,nJ-1,nJ-4))
+dir_bound_j = np.array(np.linspace(6,nJ-1,nJ-6))
 q = 50
 T[[0],45:50] = 263.15
 T[hdi,[49]] = 263.15
@@ -288,7 +288,6 @@ for iter in range(nIterations):
                         Q[i] = (d + coeffsT[i,j,1] * Q[i-1])/ (coeffsT[i,j,4] - coeffsT[i,j,1] * P[i-1])
                 else:
                     P[i] = coeffsT[i,j,0]/(coeffsT[i,j,4] - coeffsT[i,j,1]*P[i-1])
-                    d = coeffsT[i, j, 2] * T[i, j + 1] + coeffsT[i, j, 3] * T[i, j - 1] + S_U[i, j]
                     Q[i] = (d + coeffsT[i,j,1]*Q[i-1])/(coeffsT[i,j,4] - coeffsT[i,j,1]*P[i-1])
             for i in range(nI-2,0,-1):
                 T[i,j] = P[i]*T[i+1,j] + Q[i]
@@ -365,15 +364,15 @@ global_con = 0
 global_con_2 = 0
 for i in hdi:
     global_con += abs(rho * V[i, 49] * dx_CV[i] * TD)
-    global_con += gamma*dT_dy[i,49]
+    global_con += D[i,48,2]*dT_dy[i,48]
     global_con_2 += abs(rho * V[i, 49] * dx_CV[i] * TD)
-    global_con_2 += abs(gamma * dT_dy[i, 49])
+    global_con_2 += abs(D[i,48,2] * dT_dy[i, 48])
 for i in range(1, nI - 1):
-    global_con += gamma*dT_dy[i,0]
-    global_con_2 += abs(gamma * dT_dy[i, 0])
+    global_con += q*dx_CV[i]
+    global_con_2 += q*dx_CV[i]
 for j in range(7,50):
-    global_con += gamma*dT_dx[0,j]
-    global_con_2 += abs(gamma * dT_dx[0, j])
+    global_con += D[1,j,1]*dT_dx[1,j]
+    global_con_2 += abs(D[1,j,1] * dT_dx[1, j])
 for j in hbj:
     global_con -= abs(rho * U[0, j] * dy_CV[j] * T[0, j])
     global_con -= abs(rho * U[49, j] * dy_CV[j] * T[49, j])
