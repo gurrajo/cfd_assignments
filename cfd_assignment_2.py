@@ -87,7 +87,7 @@ nIterations = 10000 # number of iterations
 Cp = 200
 plotVelocityVectors = False
 resTolerance = 0.001
-TDMA = False
+TDMA = True
 # Read data for velocity fields and geometrical quantities
 
 # For all the matrices the first input makes reference to the x coordinate
@@ -366,20 +366,17 @@ global_con = 0
 global_con_2 = 0
 for i in hdi:
     global_con += abs(rho * V[i, 49] * dx_CV[i] * TD)
-    global_con += D[i,48,2]*dT_dy[i,48]
+    global_con += gamma*dT_dy[i,48]
     global_con_2 += abs(rho * V[i, 49] * dx_CV[i] * TD)
-    global_con_2 += abs(D[i,48,2] * dT_dy[i, 48])
-for i in range(1, nI - 1):
-    global_con += q*dx_CV[i]
-    global_con_2 += q*dx_CV[i]
 for j in range(7,50):
-    global_con += D[1,j,1]*dT_dx[1,j]
-    global_con_2 += abs(D[1,j,1] * dT_dx[1, j])
+    global_con -= gamma*dT_dx[0,j]
+
 for j in hbj:
     global_con -= abs(rho * U[0, j] * dy_CV[j] * T[0, j])
     global_con -= abs(rho * U[49, j] * dy_CV[j] * T[49, j])
-    global_con_2 += abs(rho * U[0, j] * dy_CV[j] * T[0, j])
-    global_con_2 += abs(rho * U[49, j] * dy_CV[j] * T[49, j])
+global_con += xCoords_M[-1]*q
+global_con_2 += 0
+# we have a source term, remember that
 print(global_con)
 print(global_con_2)
 print(global_con_2/global_con)
