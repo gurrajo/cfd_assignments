@@ -87,7 +87,7 @@ nIterations = 10000 # number of iterations
 Cp = 200
 plotVelocityVectors = False
 resTolerance = 0.001
-TDMA = True
+TDMA = False
 if TDMA:
     solver = "TDMA"
 else:
@@ -116,9 +116,8 @@ F = np.zeros((nI, nJ, 4))  # convective coefficients e, w, n and s
 coeffsT = np.zeros((nI, nJ, 5))  # hybrid scheme coefficients E, W, N, S, P
 S_U = np.zeros((nI, nJ))
 S_P = np.zeros((nI, nJ))
-TD = 263.15 # K
+TD = 263.15 #K
 
-# boundary nodes
 hai = np.array([1])
 haj = np.array([45, 46, 47, 48])
 hbi = np.array([1])
@@ -332,11 +331,11 @@ for iter in range(nIterations):
                 T[i, j] = (T[i + 1, j] * coeffsT[i, j, 0] + T[i - 1, j] * coeffsT[i, j, 1] + T[i, j + 1] * coeffsT[i, j, 2] + T[i, j - 1] * coeffsT[i, j, 3] + S_U[i, j]) / coeffsT[i, j, 4]
     # Copy temperatures to boundaries
     T[0,0:7] = T[1,0:7]
+    #T[0,46:50] = T[1,46:50]
     T[0:23,49] = T[0:23,48]
     T[27:50, 49] = T[27:50, 48]
     T[49,:] = T[48,:]
-    T[:,0] = T[:,1]
-
+    T[:,0] = T[:,1] # needs to be looked at
     # Compute residuals (taking into account normalization)
     temp_sum_r = 0
     inlet_f = 0
@@ -362,6 +361,9 @@ for iter in range(nIterations):
         break
 # check global conservation
 
+
+
+# Plotting (these are some examples, more plots might be needed)
 [dT_dx, dT_dy] = np.gradient(T, xCoords_N[:,0], yCoords_N[:,0])
 
 global_con = 0
@@ -381,7 +383,6 @@ global_con += xCoords_M[-1]*q
 
 print("global conservation: " + str(global_con))
 
-# Plotting (these are some examples, more plots might be needed)
 plt.figure()
 # dt_dx defined positive in the east direction and our normal vector is in the west direction, use -dt_dx
 plt.quiver(np.ones((43,1)), yCoords_N[7:50], -dT_dx[1,7:50], dT_dy[1,7:50])

@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0c55543f-6e3b-4fe4-bfea-94845b496734" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/cfd_assignment_2_pre_boundary.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cfd_assignment_2.py" beforeDir="false" afterPath="$PROJECT_DIR$/cfd_assignment_2.py" afterDir="false" />
     </list>
@@ -23,7 +24,12 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/cfd_assig_1.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\gustav\PycharmProjects\cfd_assignments" />
+    </key>
   </component>
   <component name="RunManager" selected="Python.cfd_assignment_2">
     <configuration name="cfd_assig_1" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
@@ -240,7 +246,14 @@
       <option name="project" value="LOCAL" />
       <updated>1638310814768</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="sorta complete">
+      <created>1638394222287</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1638394222287</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -267,7 +280,8 @@
     <MESSAGE value="not working currently" />
     <MESSAGE value="still not finished" />
     <MESSAGE value="fixed? think so" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed? think so" />
+    <MESSAGE value="sorta complete" />
+    <option name="LAST_COMMIT_MESSAGE" value="sorta complete" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -276,11 +290,6 @@
           <url>file://$PROJECT_DIR$/cfd_assig_1.py</url>
           <line>194</line>
           <option name="timeStamp" value="17" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/cfd_assignment_2.py</url>
-          <line>377</line>
-          <option name="timeStamp" value="20" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
