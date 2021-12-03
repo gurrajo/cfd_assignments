@@ -83,7 +83,7 @@ grid_type = 'fine'  # either 'coarse' or 'fine'
 caseID = 20 # your case number to solve
 k = 1
 rho = 1 # density
-nIterations = 10000 # number of iterations
+nIterations = 1000 # number of iterations
 Cp = 200
 plotVelocityVectors = False
 resTolerance = 0.001
@@ -144,15 +144,25 @@ gamma = k / Cp
 ## Diffusive and convective coefficient calculations
 for i in range(1, nI - 1):
     for j in range(1, nJ - 1):
-        D[i, j, 0] = gamma/dxe_N[i] # east diffusive
-        D[i, j, 1] = gamma/dxw_N[i] # west diffusive
-        D[i, j, 2] = gamma/dyn_N[j] # north diffusive
-        D[i, j, 3] = gamma/dys_N[j] # south diffusive
+        D[i, j, 0] = dy_CV[j]*gamma/dxe_N[i] # east diffusive
+        D[i, j, 1] = dy_CV[j]*gamma/dxw_N[i] # west diffusive
+        D[i, j, 2] = dx_CV[i]*gamma/dyn_N[j] # north diffusive
+        D[i, j, 3] = dx_CV[i]*gamma/dys_N[j] # south diffusive
 
-        F[i, j, 0] = dy_CV[j]*rho*(U[i,j]+U[i+1,j])/2 # east convective
-        F[i, j, 1] = dy_CV[j]*rho*(U[i,j]+U[i-1,j])/2 # west convective
-        F[i, j, 2] = dx_CV[i]*rho*(V[i,j]+V[i,j+1])/2 # north convective
-        F[i, j, 3] = dx_CV[i]*rho*(V[i,j]+V[i,j-1])/2 # south convective
+        fxe = 0.5*dx_CV[i]/dxe_N[i]
+        fxw = 0.5*dx_CV[i]/dxw_N[i]
+        fyn = 0.5*dy_CV[j]/dyn_N[j]
+        fys = 0.5*dy_CV[j]/dys_N[j]
+
+        Ue = fxe*U[i+1,j]+(1-fxe)*U[i,j]
+        Uw = fxw*U[i-1,j]+(1-fxw)*U[i,j]
+        Vn = fyn*V[i,j+1]+(1-fyn)*V[i,j]
+        Vs = fys*V[i,j-1]+(1-fys)*V[i,j]
+
+        F[i, j, 0] = dy_CV[j]*rho*Ue # east convective
+        F[i, j, 1] = dy_CV[j]*rho*Uw # west convective
+        F[i, j, 2] = dx_CV[i]*rho*Vn # north convective
+        F[i, j, 3] = dx_CV[i]*rho*Vs # south convective
 
 # Hybrid scheme coefficients calculations (taking into account boundary conditions)
 
@@ -164,20 +174,18 @@ for i in range(2, nI - 2):
         coeffsT[i, j, 2] = np.max([-F[i, j, 2], 0, (D[i, j, 2] - F[i, j, 2] / 2)])
         coeffsT[i, j, 3] = np.max([F[i, j, 3], 0, (D[i, j, 3] + F[i, j, 3] / 2)])
 
-        if i in hdi and j in hdj:
-            Tb = 263.15
-            S_P[i,j] -= D[i,j,2] + F[i,j,2]
-            S_U[i,j] += Tb*(D[i,j,2] + F[i,j,2])
-            coeffsT[i,j,2] = 0
-        elif j == 1:
-            q = 50  # W/m^2
-            S_U[i,j] = q*dx_CV[i]
+#        if i in hdi and j in hdj:
+#            Tb = 263.15
+#            S_P[i,j] -= D[i,j,2] + F[i,j,2]
+#            S_U[i,j] += Tb*(D[i,j,2] + F[i,j,2])
+            #coeffsT[i,j,2] = 0
+        if j == 1:
+            S_U[i,j] = q/Cp*dx_CV[i]
             coeffsT[i,j,3] = 0
-        else:
+        if j == 48 and i not in hdi:
             # neumann
             coeffsT[i,j,2] = 0
-        delF = F[i, j, 0] - F[i, j, 1] + F[i, j, 2] - F[i, j, 3]
-        coeffsT[i, j, 4] = np.sum(coeffsT[i, j, 0:4]) + delF - S_P[i,j]
+        coeffsT[i, j, 4] = np.sum(coeffsT[i, j, 0:4])
 
 for j in range(2, nJ - 2):
     x = [1, 48]
@@ -186,29 +194,11 @@ for j in range(2, nJ - 2):
         coeffsT[i, j, 1] = np.max([F[i, j, 1], 0, (D[i, j, 1] + F[i, j, 1] / 2)])
         coeffsT[i, j, 2] = np.max([-F[i, j, 2], 0, (D[i, j, 2] - F[i, j, 2] / 2)])
         coeffsT[i, j, 3] = np.max([F[i, j, 3], 0, (D[i, j, 3] + F[i, j, 3] / 2)])
-        if i in hai and j in haj:
-            coeffsT[i, j, 1] = 0
-            Tb = 263.15
-            S_P[i, j] -= D[i, j, 1]
-            S_U[i, j] += Tb*D[i, j, 1]
-        elif i in hbi and j in hbj:
-            # neumann
+        if i == 1 and j not in dir_bound_j:
             coeffsT[i,j,1] = 0
-        elif i in hci and j in hcj:
-            # neumann
+        elif i == 48:
             coeffsT[i,j,0] = 0
-        elif i == 1:
-            Tb = 293.15
-            S_P[i, j] -= D[i, j, 1]
-            S_U[i, j] += Tb * D[i, j, 1]
-            coeffsT[i,j,1] = 0
-        else:
-            if i == 1:
-                coeffsT[i, j, 1] = 0
-            else:
-                coeffsT[i, j, 0] = 0
-        delF = F[i, j, 0] - F[i, j, 1] + F[i, j, 2] - F[i, j, 3]
-        coeffsT[i, j, 4] = np.sum(coeffsT[i, j, 0:4]) + delF - S_P[i,j]
+        coeffsT[i, j, 4] = np.sum(coeffsT[i, j, 0:4])
 
 # bot_left
 i = 1
@@ -218,22 +208,17 @@ coeffsT[i, j, 0] = np.max([-F[i,j,0] ,0, (D[i,j,0] - F[i,j,0]/2)])
 coeffsT[i, j, 1] = 0
 coeffsT[i, j, 2] = np.max([-F[i,j,2] ,0, (D[i,j,2] - F[i,j,2]/2)])
 coeffsT[i, j, 3] = 0
-delF = F[i,j,0] - F[i,j,1] + F[i,j,2] - F[i,j,3]
-coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4]) + delF
-S_U[i,j] = q*dx_CV[i]
+coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4])
+S_U[i,j] = q/Cp*dx_CV[i]
 
 # top_left
 i = 1
 j = 48
 coeffsT[i, j, 0] = np.max([-F[i,j,0] ,0, (D[i,j,0] - F[i,j,0]/2)])
-coeffsT[i, j, 1] = 0
+coeffsT[i, j, 1] = np.max([F[i,j,1] ,0, (D[i,j,1] + F[i,j,1]/2)])
 coeffsT[i, j, 2] = 0
 coeffsT[i, j, 3] = np.max([F[i,j,3] ,0, (D[i,j,3] + F[i,j,3]/2)])
-Tb = 263.15
-S_P[i, j] -= D[i, j, 1]
-S_U[i, j] += Tb * D[i, j, 1]
-delF = F[i,j,0] - F[i,j,1] + F[i,j,2] - F[i,j,3]
-coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4]) + delF -S_P[i,j]
+coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4])
 
 # top_right
 i = 48
@@ -242,8 +227,7 @@ coeffsT[i, j, 0] = 0
 coeffsT[i, j, 1] = np.max([F[i,j,1] ,0, (D[i,j,1] + F[i,j,1]/2)])
 coeffsT[i, j, 2] = 0
 coeffsT[i, j, 3] = np.max([F[i, j, 3], 0, (D[i, j, 3] + F[i, j, 3] / 2)])
-delF = F[i,j,0] - F[i,j,1] + F[i,j,2] - F[i,j,3]
-coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4]) + delF
+coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4])
 
 
 # bot_right
@@ -253,9 +237,8 @@ coeffsT[i, j, 0] = 0
 coeffsT[i, j, 1] = np.max([F[i,j,1] ,0, (D[i,j,1] + F[i,j,1]/2)])
 coeffsT[i, j, 2] = np.max([-F[i,j,2] ,0, (D[i,j,2] - F[i,j,2]/2)])
 coeffsT[i, j, 3] = 0
-delF = F[i,j,0] - F[i,j,1] + F[i,j,2] - F[i,j,3]
-coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4]) + delF
-S_U[i,j] = q*dx_CV[i]
+coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4])
+S_U[i,j] = q/Cp*dx_CV[i]
 
 for i in range(2, nI - 2):
     for j in range(2, nJ - 2):
@@ -263,8 +246,7 @@ for i in range(2, nI - 2):
         coeffsT[i, j, 1] = np.max([F[i,j,1] ,0, (D[i,j,1] + F[i,j,1]/2)])
         coeffsT[i, j, 2] = np.max([-F[i,j,2] ,0, (D[i,j,2] - F[i,j,2]/2)])
         coeffsT[i, j, 3] = np.max([F[i,j,3] ,0, (D[i,j,3] + F[i,j,3]/2)])
-        delF = F[i,j,0] - F[i,j,1] + F[i,j,2] - F[i,j,3]
-        coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4]) + delF
+        coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4])
 
 for iter in range(nIterations):
     # Impose boundary conditions
@@ -347,8 +329,8 @@ for iter in range(nIterations):
     for i in hdi:
         inlet_f += abs(rho*V[i,49]*dx_CV[i]*TD)
     for j in hbj:
-        outlet_f -= abs(rho*U[0,j]*dy_CV[j]*T[0,j])
-        outlet_f -= abs(rho*U[49,j]*dy_CV[j]*T[49,j])
+        outlet_f += abs(rho*U[0,j]*dy_CV[j]*T[0,j])
+        outlet_f += abs(rho*U[49,j]*dy_CV[j]*T[49,j])
     F = abs(inlet_f - outlet_f)
     r = temp_sum_r/F
     residuals.append(r)  # fill with your residual value for the
@@ -365,20 +347,17 @@ for iter in range(nIterations):
 [dT_dx, dT_dy] = np.gradient(T, xCoords_N[:,0], yCoords_N[:,0])
 
 global_con = 0
-
-for i in hdi:
-    global_con += abs(rho * V[i, 49] * dx_CV[i] * TD)
-    global_con += gamma*dT_dy[i,48]
+Qw = np.zeros(nJ)
 for j in range(7,50):
-    global_con -= gamma*dT_dx[0,j]
+    Qw[j] = k*dT_dx[0,j]*dy_CV[j]
 
-for j in hbj:
-    global_con -= abs(rho * U[0, j] * dy_CV[j] * T[0, j])
-    global_con -= abs(rho * U[49, j] * dy_CV[j] * T[49, j])
+F_tot = inlet_f - outlet_f
+global_con = F_tot*Cp + xCoords_M[-1]*q - np.sum(Qw)
+total_heat_ex = abs(F_tot*Cp) + xCoords_M[-1]*q + abs(np.sum(Qw))
 
-# add source term
-global_con += xCoords_M[-1]*q
 
+
+print("total heat exchange: " + str(global_con/total_heat_ex))
 print("global conservation: " + str(global_con))
 
 # Plotting (these are some examples, more plots might be needed)

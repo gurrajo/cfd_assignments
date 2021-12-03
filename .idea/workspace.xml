@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0c55543f-6e3b-4fe4-bfea-94845b496734" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/cfd_assignment_2_pre_boundary.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cfd_assignment_2.py" beforeDir="false" afterPath="$PROJECT_DIR$/cfd_assignment_2.py" afterDir="false" />
     </list>
@@ -253,7 +252,14 @@
       <option name="project" value="LOCAL" />
       <updated>1638394222287</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="finished...">
+      <created>1638461695604</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1638461695604</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -281,7 +287,8 @@
     <MESSAGE value="still not finished" />
     <MESSAGE value="fixed? think so" />
     <MESSAGE value="sorta complete" />
-    <option name="LAST_COMMIT_MESSAGE" value="sorta complete" />
+    <MESSAGE value="finished..." />
+    <option name="LAST_COMMIT_MESSAGE" value="finished..." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
