@@ -87,7 +87,7 @@ nIterations = 1000 # number of iterations
 Cp = 200
 plotVelocityVectors = False
 resTolerance = 0.001
-TDMA = True
+TDMA = False
 if TDMA:
     solver = "TDMA"
 else:
@@ -165,88 +165,22 @@ for i in range(1, nI - 1):
         F[i, j, 3] = dx_CV[i]*rho*Vs # south convective
 
 # Hybrid scheme coefficients calculations (taking into account boundary conditions)
-
-for i in range(2, nI - 2):
-    y = [1,48]
-    for j in y:
+for i in range(1, nI-1):
+    for j in range(1, nJ-1):
         coeffsT[i, j, 0] = np.max([-F[i, j, 0], 0, (D[i, j, 0] - F[i, j, 0] / 2)])
         coeffsT[i, j, 1] = np.max([F[i, j, 1], 0, (D[i, j, 1] + F[i, j, 1] / 2)])
         coeffsT[i, j, 2] = np.max([-F[i, j, 2], 0, (D[i, j, 2] - F[i, j, 2] / 2)])
         coeffsT[i, j, 3] = np.max([F[i, j, 3], 0, (D[i, j, 3] + F[i, j, 3] / 2)])
-
-#        if i in hdi and j in hdj:
-#            Tb = 263.15
-#            S_P[i,j] -= D[i,j,2] + F[i,j,2]
-#            S_U[i,j] += Tb*(D[i,j,2] + F[i,j,2])
-            #coeffsT[i,j,2] = 0
         if j == 1:
-            S_U[i,j] = q/Cp*dx_CV[i]
-            coeffsT[i,j,3] = 0
-        if j == 48 and i not in hdi:
-            # neumann
+            S_U[i, j] = q / Cp * dx_CV[i]
+            coeffsT[i, j, 3] = 0
+        elif j == nJ-2 and i not in hdi:
             coeffsT[i,j,2] = 0
-        coeffsT[i, j, 4] = np.sum(coeffsT[i, j, 0:4])
-
-for j in range(2, nJ - 2):
-    x = [1, 48]
-    for i in x:
-        coeffsT[i, j, 0] = np.max([-F[i, j, 0], 0, (D[i, j, 0] - F[i, j, 0] / 2)])
-        coeffsT[i, j, 1] = np.max([F[i, j, 1], 0, (D[i, j, 1] + F[i, j, 1] / 2)])
-        coeffsT[i, j, 2] = np.max([-F[i, j, 2], 0, (D[i, j, 2] - F[i, j, 2] / 2)])
-        coeffsT[i, j, 3] = np.max([F[i, j, 3], 0, (D[i, j, 3] + F[i, j, 3] / 2)])
-        if i == 1 and j not in dir_bound_j:
-            coeffsT[i,j,1] = 0
-        elif i == 48:
+        elif i == nI-2:
             coeffsT[i,j,0] = 0
-        coeffsT[i, j, 4] = np.sum(coeffsT[i, j, 0:4])
-
-# bot_left
-i = 1
-j = 1
-q = 50  # W/m^2
-coeffsT[i, j, 0] = np.max([-F[i,j,0] ,0, (D[i,j,0] - F[i,j,0]/2)])
-coeffsT[i, j, 1] = 0
-coeffsT[i, j, 2] = np.max([-F[i,j,2] ,0, (D[i,j,2] - F[i,j,2]/2)])
-coeffsT[i, j, 3] = 0
-coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4])
-S_U[i,j] = q/Cp*dx_CV[i]
-
-# top_left
-i = 1
-j = 48
-coeffsT[i, j, 0] = np.max([-F[i,j,0] ,0, (D[i,j,0] - F[i,j,0]/2)])
-coeffsT[i, j, 1] = np.max([F[i,j,1] ,0, (D[i,j,1] + F[i,j,1]/2)])
-coeffsT[i, j, 2] = 0
-coeffsT[i, j, 3] = np.max([F[i,j,3] ,0, (D[i,j,3] + F[i,j,3]/2)])
-coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4])
-
-# top_right
-i = 48
-j = 48
-coeffsT[i, j, 0] = 0
-coeffsT[i, j, 1] = np.max([F[i,j,1] ,0, (D[i,j,1] + F[i,j,1]/2)])
-coeffsT[i, j, 2] = 0
-coeffsT[i, j, 3] = np.max([F[i, j, 3], 0, (D[i, j, 3] + F[i, j, 3] / 2)])
-coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4])
-
-
-# bot_right
-i = 48
-j = 1
-coeffsT[i, j, 0] = 0
-coeffsT[i, j, 1] = np.max([F[i,j,1] ,0, (D[i,j,1] + F[i,j,1]/2)])
-coeffsT[i, j, 2] = np.max([-F[i,j,2] ,0, (D[i,j,2] - F[i,j,2]/2)])
-coeffsT[i, j, 3] = 0
-coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4])
-S_U[i,j] = q/Cp*dx_CV[i]
-
-for i in range(2, nI - 2):
-    for j in range(2, nJ - 2):
-        coeffsT[i, j, 0] = np.max([-F[i,j,0] ,0, (D[i,j,0] - F[i,j,0]/2)])
-        coeffsT[i, j, 1] = np.max([F[i,j,1] ,0, (D[i,j,1] + F[i,j,1]/2)])
-        coeffsT[i, j, 2] = np.max([-F[i,j,2] ,0, (D[i,j,2] - F[i,j,2]/2)])
-        coeffsT[i, j, 3] = np.max([F[i,j,3] ,0, (D[i,j,3] + F[i,j,3]/2)])
-        coeffsT[i, j, 4] = np.sum(coeffsT[i,j,0:4])
+        elif i == 1 and j not in dir_bound_j:
+            coeffsT[i,j,1] = 0
+        coeffsT[i,j,4] = np.sum(coeffsT[i,j,0:4])
 
 for iter in range(nIterations):
     # Impose boundary conditions
@@ -347,18 +281,28 @@ for iter in range(nIterations):
 [dT_dx, dT_dy] = np.gradient(T, xCoords_N[:,0], yCoords_N[:,0])
 
 global_con = 0
-Qw = np.zeros(nJ)
+# dirichlet boundary
+
+Qw = 0
+Qn = 0
 for j in range(7,50):
-    Qw[j] = k*dT_dx[0,j]*dy_CV[j]
+    # normal direction [-1,0,0] (gradient defined positive in [1,0,0])
+    Qw += -k*dT_dx[0,j]*dy_CV[j]
+for i in hdi:
+    # normal direction [0,1,0] (gradient defined positive in [0,1,0])
+    Qn += k*dT_dy[49,i]*dx_CV[i]
 
-F_tot = inlet_f - outlet_f
-global_con = F_tot*Cp + xCoords_M[-1]*q - np.sum(Qw)
-total_heat_ex = abs(F_tot*Cp) + xCoords_M[-1]*q + abs(np.sum(Qw))
+F_tot = inlet_f - outlet_f # difference in heat flux in outlets and inlets (+ when more enters , - when more leaves)
+global_con = F_tot*Cp + xCoords_M[-1]*q + Qw + Qn
+
+# take inlet and outlet separately when calculating total heat exchange
+total_heat_ex = abs(inlet_f*Cp) + abs(outlet_f*Cp) + xCoords_M[-1]*q + abs(Qw) + abs(Qn)
 
 
 
-print("total heat exchange: " + str(global_con/total_heat_ex))
+
 print("global conservation: " + str(global_con))
+print("global conservation relative error: " + str(global_con/total_heat_ex))
 
 # Plotting (these are some examples, more plots might be needed)
 plt.figure()
