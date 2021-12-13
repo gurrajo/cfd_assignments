@@ -8,6 +8,7 @@
 # ==============Packages needed=================
 import matplotlib.pyplot as plt
 import numpy as np
+import copy as cp
 
 # ================= Inputs =====================
 # Fluid properties and B. C. inputs
@@ -57,6 +58,8 @@ xCoords_N = np.zeros((nI, nJ))  # X coords of the nodes
 yCoords_N = np.zeros((nI, nJ))  # Y coords of the nodes
 xCoords_M = np.zeros((mI, mJ))  # X coords of the mesh points
 yCoords_M = np.zeros((mI, mJ))  # Y coords of the mesh points
+dWE = np.zeros((nI,nJ))
+dSN = np.zeros((nI,nJ))
 dxe_N = np.zeros((nI, nJ))  # X distance to east node
 dxw_N = np.zeros((nI, nJ))  # X distance to west node
 dyn_N = np.zeros((nI, nJ))  # Y distance to north node
@@ -99,7 +102,10 @@ for i in range(1, nI - 1):
         dxw_N[i, j] = xCoords_N[i, j] - xCoords_N[i - 1, j]
         dyn_N[i, j] = yCoords_N[i, j + 1] - yCoords_N[i, j]
         dys_N[i, j] = yCoords_N[i, j] - yCoords_N[i, j - 1]
-
+for i in range(2,nI-2):
+    for j in range(2,nJ-2):
+        dWE[i,j] = dx_CV[i,j] + dx_CV[i-1,j]/2 + dx_CV[i+1,j]/2
+        dSN[i,j] = dy_CV[i,j] + dy_CV[i,j-1]/2 + dy_CV[i,j+1]/2
 # Initialize variable matrices
 
 
@@ -123,33 +129,33 @@ for iter in range(nIterations):
     # convective coefficiants
     for i in range(1,nI-1):
         for j in range(1,nJ-1):
-            fxe = 0.5 * dx_CV[i] / dxe_N[i]
-            fxw = 0.5 * dx_CV[i] / dxw_N[i]
-            fyn = 0.5 * dy_CV[j] / dyn_N[j]
-            fys = 0.5 * dy_CV[j] / dys_N[j]
+            fxe = 0.5 * dx_CV[i,j] / dxe_N[i,j]
+            fxw = 0.5 * dx_CV[i,j] / dxw_N[i,j]
+            fyn = 0.5 * dy_CV[i,j] / dyn_N[i,j]
+            fys = 0.5 * dy_CV[i,j] / dys_N[i,j]
 
             Ue = fxe * U[i + 1, j] + (1 - fxe) * U[i, j]
             Uw = fxw * U[i - 1, j] + (1 - fxw) * U[i, j]
             Vn = fyn * V[i, j + 1] + (1 - fyn) * V[i, j]
             Vs = fys * V[i, j - 1] + (1 - fys) * V[i, j]
 
-            F[i, j, 0] = dy_CV[j] * rho * Ue  # east convective
-            F[i, j, 1] = dy_CV[j] * rho * Uw  # west convective
-            F[i, j, 2] = dx_CV[i] * rho * Vn  # north convective
-            F[i, j, 3] = dx_CV[i] * rho * Vs  # south convective
+            F[i, j, 0] = dy_CV[i,j] * rho * Ue  # east convective
+            F[i, j, 1] = dy_CV[i,j] * rho * Uw  # west convective
+            F[i, j, 2] = dx_CV[i,j] * rho * Vn  # north convective
+            F[i, j, 3] = dx_CV[i,j] * rho * Vs  # south convective
 
 
     ### First, north and south boundaries
     for i in range(2, nI - 2):
         j = 1
-        coeffsUV[i, j, 0] = D[i,j,0] + np.max(0,-F[i,j,0])
-        coeffsUV[i, j, 1] = D[i,j,1] + np.max(0,F[i,j,1])
-        coeffsUV[i, j, 2] = D[i,j,2] + np.max(0,-F[i,j,2])
+        coeffsUV[i, j, 0] = D[i,j,0] + np.max((0,-F[i,j,0]))
+        coeffsUV[i, j, 1] = D[i,j,1] + np.max((0,F[i,j,1]))
+        coeffsUV[i, j, 2] = D[i,j,2] + np.max((0,-F[i,j,2]))
         coeffsUV[i, j, 3] = 0
         del_f = F[i, j, 1] - F[i, j, 0] + F[i, j, 3] - F[i, j, 2]
-        sourceUV[i, j, 0] += np.max(del_f, 0) * U[i, j]
-        sourceUV[i, j, 1] += np.max(del_f, 0) * V[i, j]
-        del_f = -np.max(-del_f, 0)
+        sourceUV[i, j, 0] += np.max((del_f, 0)) * U[i, j]
+        sourceUV[i, j, 1] += np.max((del_f, 0)) * V[i, j]
+        del_f = -np.max((-del_f, 0))
         coeffsUV[i, j, 4] = (np.sum(coeffsUV[i, j, :]) - del_f)/alphaUV
         sourceUV[i, j, 0] += -(P[i+1,j] - P[i-1,j])/(dx_CV[i,j] + dx_CV[i-1,j]/2 + dx_CV[i+1,j]/2)*dx_CV[i,j]*dy_CV[i,j]
         sourceUV[i, j, 1] += 0 # homogenous neumann for pressure
@@ -157,13 +163,13 @@ for iter in range(nIterations):
         sourceUV[i, j, 1] += coeffsUV[i, j, 4] * (1 - alphaUV) * V[i, j]
 
         j = nJ-2
-        coeffsUV[i, j, 0] = D[i, j, 0] + np.max(0, -F[i, j, 0])
-        coeffsUV[i, j, 1] = D[i, j, 1] + np.max(0, F[i, j, 1])
+        coeffsUV[i, j, 0] = D[i, j, 0] + np.max((0, -F[i, j, 0]))
+        coeffsUV[i, j, 1] = D[i, j, 1] + np.max((0, F[i, j, 1]))
         coeffsUV[i, j, 2] = 0
-        coeffsUV[i, j, 3] = D[i,j,3] + np.max(0,F[i,j,3])
+        coeffsUV[i, j, 3] = D[i,j,3] + np.max((0,F[i,j,3]))
         del_f = F[i, j, 1] - F[i, j, 0] + F[i, j, 3] - F[i, j, 2]
-        sourceUV[i, j, 0] += np.max(del_f, 0) * U[i, j]
-        sourceUV[i, j, 1] += np.max(del_f, 0) * V[i, j]
+        sourceUV[i, j, 0] += np.max((del_f, 0)) * U[i, j]
+        sourceUV[i, j, 1] += np.max((del_f, 0)) * V[i, j]
         del_f = -np.max(-del_f, 0)
         coeffsUV[i, j, 4] = (np.sum(coeffsUV[i, j, :]) - del_f)/alphaUV
         sourceUV[i, j, 0] = -(P[i+1,j] - P[i-1,j])/(dx_CV[i,j] + dx_CV[i-1,j]/2 + dx_CV[i+1,j]/2)*dx_CV[i,j]*dy_CV[i,j]
@@ -174,10 +180,10 @@ for iter in range(nIterations):
     ### Second, east and west boundaries
     for j in range(2, nJ - 2):
         i = 1
-        coeffsUV[i, j, 0] = D[i, j, 0] + np.max(0, -F[i, j, 0])
+        coeffsUV[i, j, 0] = D[i, j, 0] + np.max((0, -F[i, j, 0]))
         coeffsUV[i, j, 1] = 0
-        coeffsUV[i, j, 2] = D[i, j, 2] + np.max(0, -F[i, j, 2])
-        coeffsUV[i, j, 3] = D[i,j,3] + np.max(0,F[i,j,3])
+        coeffsUV[i, j, 2] = D[i, j, 2] + np.max((0, -F[i, j, 2]))
+        coeffsUV[i, j, 3] = D[i,j,3] + np.max((0,F[i,j,3]))
         del_f = F[i, j, 1] - F[i, j, 0] + F[i, j, 3] - F[i, j, 2]
         sourceUV[i, j, 0] += np.max(del_f, 0) * U[i, j]
         sourceUV[i, j, 1] += np.max(del_f, 0) * V[i, j]
@@ -190,9 +196,9 @@ for iter in range(nIterations):
 
         i = nJ - 2
         coeffsUV[i, j, 0] = 0
-        coeffsUV[i, j, 1] = D[i, j, 1] + np.max(0, F[i, j, 1])
-        coeffsUV[i, j, 2] = D[i, j, 2] + np.max(0, -F[i, j, 2])
-        coeffsUV[i, j, 3] = D[i, j, 3] + np.max(0, F[i, j, 3])
+        coeffsUV[i, j, 1] = D[i, j, 1] + np.max((0, F[i, j, 1]))
+        coeffsUV[i, j, 2] = D[i, j, 2] + np.max((0, -F[i, j, 2]))
+        coeffsUV[i, j, 3] = D[i, j, 3] + np.max((0, F[i, j, 3]))
         del_f = F[i, j, 1] - F[i, j, 0] + F[i, j, 3] - F[i, j, 2]
         sourceUV[i, j, 0] += np.max(del_f, 0) * U[i, j]
         sourceUV[i, j, 1] += np.max(del_f, 0) * V[i, j]
@@ -291,58 +297,115 @@ for iter in range(nIterations):
     for i in range(iter_gs):
         for i in range(1,nI-1):
             for j in range(1,nJ-1):
-                U[i,j] = (coeffsUV[i,j,1]*U[i-1,j] + coeffsUV[i,j,0]*U[i+1,j] + sourceUV[i,j,0])/coeffsUV[i,j,4]
-                V[i,j] = (coeffsUV[i,j,3]*V[i,j-1] + coeffsUV[i,j,2]*V[i,j+1] + sourceUV[i,j,1])/coeffsUV[i,j,4]
+                U[i,j] = (coeffsUV[i,j,0]*U[i+1,j] + coeffsUV[i,j,1]*U[i-1,j] +coeffsUV[i,j,2]*U[i,j+1] + coeffsUV[i,j,3]*U[i,j-1] + sourceUV[i,j,0])/coeffsUV[i,j,4]
+                V[i,j] = (coeffsUV[i,j,0]*V[i+1,j] +coeffsUV[i,j,1]*V[i-1,j] +coeffsUV[i,j,2]*V[i,j+1] + coeffsUV[i,j,3]*V[i,j-1]  + sourceUV[i,j,1])/coeffsUV[i,j,4]
 
         for i in range(nI-2,0,-1):
             for j in range(nJ-2,0,-1):
-                U[i, j] = (coeffsUV[i,j,1] * U[i-1,j] + coeffsUV[i, j, 0] * U[i + 1, j] + sourceUV[i, j, 0]) / coeffsUV[i, j, 4]
-                V[i, j] = (coeffsUV[i,j,3] * V[i,j-1] + coeffsUV[i, j, 2] * V[i, j + 1] + sourceUV[i, j, 1]) / coeffsUV[i, j, 4]
+                U[i,j] = (coeffsUV[i,j,0]*U[i+1,j] + coeffsUV[i,j,1]*U[i-1,j] +coeffsUV[i,j,2]*U[i,j+1] + coeffsUV[i,j,3]*U[i,j-1] + sourceUV[i,j,0])/coeffsUV[i,j,4]
+                V[i,j] = (coeffsUV[i,j,0]*V[i+1,j] +coeffsUV[i,j,1]*V[i-1,j] +coeffsUV[i,j,2]*V[i,j+1] + coeffsUV[i,j,3]*V[i,j-1]  + sourceUV[i,j,1])/coeffsUV[i,j,4]
 
     ## Calculate at the faces using Rhie-Chow for the face velocities
+    for i in range(1,nI-1):
+        for j in range(1,nJ-1):
+            fxe = 0.5 * dx_CV[i,j] / dxe_N[i,j]
+            fxw = 0.5 * dx_CV[i,j] / dxw_N[i,j]
+            fyn = 0.5 * dy_CV[i,j] / dyn_N[i,j]
+            fys = 0.5 * dy_CV[i,j] / dys_N[i,j]
+
+            Ue = fxe * U[i + 1, j] + (1 - fxe) * U[i, j]
+            Uw = fxw * U[i - 1, j] + (1 - fxw) * U[i, j]
+            Vn = fyn * V[i, j + 1] + (1 - fyn) * V[i, j]
+            Vs = fys * V[i, j - 1] + (1 - fys) * V[i, j]
+
+            F[i, j, 0] = dy_CV[j] * rho * Ue  # east convective
+            F[i, j, 1] = dy_CV[j] * rho * Uw  # west convective
+            F[i, j, 2] = dx_CV[i] * rho * Vn  # north convective
+            F[i, j, 3] = dx_CV[i] * rho * Vs  # south convective
+
+    for i in range(2,nI-2):
+        for j in range(2,nJ-2):
+
+            ue = (U[i,j] + U[i+1,j])/2 + dy_CV[i,j]/(4*coeffsUV[i,j,4])*(P[i+2,j] - 3*P[i+1,j] + 3*P[i,j] - P[i-1,j])
+
+            vn = (V[i,j] + V[i,j+1])/2 + dx_CV[i,j]/(4*coeffsUV[i,j,4])*(P[i,j+2] - 3*P[i,j+1] + 3*P[i,j] - P[i,j-1])
+
+            F[i,j,0] = dy_CV[j] * rho * ue
+            F[i,j,2] = dx_CV[i] * rho * vn
+            F[i,j+1,3] = F[i,j,2]
+            F[i+1,j,1] = F[i,j,1]
+        F[i+1,j,1] = F[i,j,0]
+        F[i,j+1,3] = F[i,j,2]
+
 
     ## Calculate pressure correction equation coefficients
+    D = np.zeros((nI, nJ, 4))
+    for i in range(2,nI-2):
+        for j in range(2,nJ-2):
+            D[i,j,0] = 2/(coeffsUV[i,j,4] + coeffsUV[i+1,j,4])
+            D[i, j, 1] = 2/(coeffsUV[i,j,4] + coeffsUV[i-1,j,4])
+            D[i, j, 2] = 2/(coeffsUV[i,j,4] + coeffsUV[i,j+1,4])
+            D[i, j, 3] = 2/(coeffsUV[i,j,4] + coeffsUV[i,j-1,4])
 
     for i in range(1, nI - 1):
         for j in range(1, nJ - 1):
             # hint: set homogeneous Neumann coefficients with if
 
-            coeffsPp[i, j, 1] = 0
+            coeffsPp[i, j, 0] = rho*dy_CV[i,j]*D[i,j,0]
 
-            coeffsPp[i, j, 2] = 0
+            coeffsPp[i, j, 1] = rho*dy_CV[i,j]*D[i,j,1]
 
-            coeffsPp[i, j, 3] = 0
+            coeffsPp[i, j, 2] = rho*dx_CV[i,j]*D[i,j,2]
 
-            coeffsPp[i, j, 4] = 0
+            coeffsPp[i, j, 3] = rho*dx_CV[i,j]*D[i,j,3]
 
-            coeffsPp[i, j, 5] = 0
-            sourcePp[i, j] = 0
+            coeffsPp[i, j, 4] = np.sum(coeffsPp[i,j,:])
+            sourcePp[i, j] = F[i,j,1]-F[i,j,0] + F[i,j,3] - F[i,j,2]
 
 
 
     # Solve for pressure correction (Note that more that one loop is used)
+
     for iter_gs in range(n_inner_iterations_gs):
         for j in range(1, nJ - 1):
             for i in range(1, nI - 1):
-                a = 0
-        # Set Pp with reference to node (2,2) and copy to boundaries
+                Pp[i,j] = (coeffsPp[i,j,0]*Pp[i+1,j] + coeffsPp[i,j,1]*Pp[i-1,j] + coeffsPp[i,j,2]*Pp[i,j+1] + coeffsPp[i,j,3]*Pp[i,j-1] + sourcePp[i,j])/coeffsPp[i,j,4]
+        for i in range(nI - 1,1,-1):
+            for j in range(nJ - 1,1,-1):
+                Pp[i, j] = (coeffsPp[i, j, 0] * Pp[i + 1, j] + coeffsPp[i, j, 1] * Pp[i - 1, j] + coeffsPp[i, j, 2] *
+                            Pp[i, j + 1] + coeffsPp[i, j, 3] * Pp[i, j - 1] + sourcePp[i, j]) / coeffsPp[i, j, 4]
 
+        Pp -= Pp[2,2]# Set Pp with reference to node (2,2) and copy to boundaries
+    Pp[:,0] = Pp[:,1]
+    Pp[:,nJ-1] = Pp[:,nJ-2]
+    Pp[0, :] = Pp[0, :]
+    Pp[nJ-1, :] = Pp[nJ-2, :]
     # Correct velocities, pressure and mass flows
     for i in range(1, nI - 1):
         for j in range(1, nJ - 1):
-            a = 0
-    # impose zero mass flow at the boundaries
-    # Copy P to boundaries
+            P[i,j] += alphaP*Pp[i,j]
+            U[i,j] += ((Pp[i-1,j] + Pp[i,j])/2 - (Pp[i,j] + Pp[i+1,j])/2)/coeffsUV[i,j,4]
+            V[i,j] += ((Pp[i,j-1] + Pp[i,j])/2 - (Pp[i,j] + Pp[i,j+1])/2)/coeffsUV[i,j,4]
 
+    # impose zero mass flow at the boundaries
+    U[0,:] = 0
+    U[nI-1,:] = 0
+    V[:,0] = 0
+    V[:,nJ-1] = 0
+    # Copy P to boundaries
+    P[:, 0] = P[:, 1]
+    P[:, nJ - 1] = P[:, nJ - 2]
+    P[0, :] = P[0, :]
+    P[nJ - 1, :] = P[nJ - 2, :]
     # Compute residuals
     residuals_U.append(0)  # U momentum residual
     residuals_V.append(0)  # V momentum residual
     residuals_c.append(0)  # continuity residual
     for i in range(1, nI - 1):
         for j in range(1, nJ - 1):
-            residuals_U[-1] = 0
-            residuals_V[-1] = 0
-            residuals_c[-1] = 0
+            residuals_U[-1] += abs(coeffsUV[i,j,4]*U[i,j] - (coeffsUV[i,j,0]*U[i+1,j] + coeffsUV[i,j,1]*U[i-1,j] + coeffsUV[i,j,2]*U[i,j+1] + coeffsUV[i,j,3]*U[i,j-1] + coeffsUV[i,j,0]))
+            residuals_V[-1] += abs(coeffsUV[i,j,4]*U[i,j] - (coeffsUV[i,j,0]*V[i+1,j] + coeffsUV[i,j,1]*V[i-1,j] + coeffsUV[i,j,2]*V[i,j+1] + coeffsUV[i,j,3]*V[i,j-1] + coeffsUV[i,j,1]))
+            residuals_c[-1] += sourcePp[i,j]
     print('iteration: %d\nresU = %.5e, resV = %.5e, resCon = %.5e\n\n' \
           % (iter, residuals_U[-1], residuals_V[-1], residuals_c[-1]))
 
