@@ -23,11 +23,11 @@ xL = 1  # length in X direction
 yL = 1  # length in Y direction
 # Solver inputs
 nIterations = 100 # maximum number of iterations
-n_inner_iterations_gs =  10# amount of inner iterations when solving
+n_inner_iterations_gs = 20# amount of inner iterations when solving
 # pressure correction with Gauss-Seidel
 resTolerance =  0.001# convergence criteria for residuals
 # each variable
-alphaUV = 0.7 # under relaxation factor for U and V
+alphaUV = 0.5 # under relaxation factor for U and V
 alphaP = 0.3 # under relaxation factor for P
 # ================ Code =======================
 # For all the matrices the first input makes reference to the x coordinate
@@ -250,9 +250,9 @@ for iter in range(nIterations):
         for j in range(1, nJ - 1):
             for i in range(1, nI - 1):
                 Pp[i,j] = (coeffsPp[i,j,0]*Pp[i+1,j] + coeffsPp[i,j,1]*Pp[i-1,j] + coeffsPp[i,j,2]*Pp[i,j+1] + coeffsPp[i,j,3]*Pp[i,j-1] + sourcePp[i,j])/coeffsPp[i,j,4]
-        #for i in range(nI - 2,0,-1):
-        #    for j in range(nJ - 1,1,-1):
-        #        Pp[i, j] = (coeffsPp[i, j, 0] * Pp[i + 1, j] + coeffsPp[i, j, 1] * Pp[i - 1, j] + coeffsPp[i, j, 2] *Pp[i, j + 1] + coeffsPp[i, j, 3] * Pp[i, j - 1] + sourcePp[i, j]) / coeffsPp[i, j, 4]
+        for i in range(nI - 2,0,-1):
+            for j in range(nJ - 1,1,-1):
+                Pp[i, j] = (coeffsPp[i, j, 0] * Pp[i + 1, j] + coeffsPp[i, j, 1] * Pp[i - 1, j] + coeffsPp[i, j, 2] *Pp[i, j + 1] + coeffsPp[i, j, 3] * Pp[i, j - 1] + sourcePp[i, j]) / coeffsPp[i, j, 4]
 
     Pp -= Pp[2,2]# Set Pp with reference to node (2,2) and copy to boundaries
     Pp[:,0] = Pp[:,1]
@@ -301,21 +301,25 @@ plt.title('Computational mesh')
 plt.figure()
 # U velocity contour
 plt.subplot(2, 3, 1)
+plt.contourf(xCoords_N,yCoords_N,U)
 plt.title('U velocity [m/s]')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
 # V velocity contour
 plt.subplot(2, 3, 2)
+plt.contourf(xCoords_N,yCoords_N,V)
 plt.title('V velocity [m/s]')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
 # P contour
 plt.subplot(2, 3, 3)
+plt.contourf(xCoords_N,yCoords_N,P)
 plt.title('Pressure [Pa]')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
 # Vector plot
 plt.subplot(2, 3, 4)
+plt.quiver(xCoords_N,yCoords_N, U, V)
 plt.title('Vector plot of the velocity field')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')

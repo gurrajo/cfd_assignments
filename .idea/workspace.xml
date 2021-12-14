@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="0c55543f-6e3b-4fe4-bfea-94845b496734" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cfd_assig_3_new.py" beforeDir="false" afterPath="$PROJECT_DIR$/cfd_assig_3_new.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cfd_assignment_3.py" beforeDir="false" afterPath="$PROJECT_DIR$/cfd_assignment_3.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -316,7 +317,14 @@
       <option name="project" value="LOCAL" />
       <updated>1639411830228</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="cfd_a_3_new added">
+      <created>1639495133041</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1639495133041</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -349,7 +357,8 @@
     <MESSAGE value="fixed version" />
     <MESSAGE value="uncomplete" />
     <MESSAGE value="almost working version" />
-    <option name="LAST_COMMIT_MESSAGE" value="almost working version" />
+    <MESSAGE value="cfd_a_3_new added" />
+    <option name="LAST_COMMIT_MESSAGE" value="cfd_a_3_new added" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -360,9 +369,9 @@
           <option name="timeStamp" value="17" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/cfd_assig_3_new.py</url>
-          <line>111</line>
-          <option name="timeStamp" value="35" />
+          <url>file://$PROJECT_DIR$/cfd_assignment_3.py</url>
+          <line>425</line>
+          <option name="timeStamp" value="37" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

@@ -413,7 +413,9 @@ for iter in range(nIterations):
         break
 # Plotting section (these are some examples, more plots might be needed)
 # Plot mesh
+
 plt.figure()
+plt.plot(xCoords_N,yCoords_N,V)
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
 plt.title('Computational mesh')
@@ -421,11 +423,13 @@ plt.title('Computational mesh')
 plt.figure()
 # U velocity contour
 plt.subplot(2, 3, 1)
+plt.contourf(xCoords_N,yCoords_N,U)
 plt.title('U velocity [m/s]')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
 # V velocity contour
 plt.subplot(2, 3, 2)
+plt.contourf(xCoords_N,yCoords_N,V)
 plt.title('V velocity [m/s]')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
@@ -436,6 +440,7 @@ plt.xlabel('x [m]')
 plt.ylabel('y [m]')
 # Vector plot
 plt.subplot(2, 3, 4)
+plt.quiver(xCoords_N, yCoords_N, U, V)
 plt.title('Vector plot of the velocity field')
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
