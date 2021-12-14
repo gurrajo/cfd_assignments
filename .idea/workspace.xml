@@ -37,20 +37,20 @@
       <recent name="C:\Users\gustav\PycharmProjects\cfd_assignments" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.cfd_assignment_3">
-    <configuration name="cfd_assig_1" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.cfd_assig_3_new">
+    <configuration name="cfd_assig_3_new" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="cfd_assignments" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Users\gustav\anaconda3\python.exe" />
+      <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="false" />
+      <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/cfd_assig_1.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/cfd_assig_3_new.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -145,11 +145,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.cfd_assig_3_new" />
         <item itemvalue="Python.cfd_assignment_3" />
         <item itemvalue="Python.cfd_assignment_2" />
         <item itemvalue="Python.cfd_assignment_2_old (1)" />
         <item itemvalue="Python.cfd_assignment_2_old" />
-        <item itemvalue="Python.cfd_assig_1" />
       </list>
     </recent_temporary>
   </component>
@@ -309,7 +309,14 @@
       <option name="project" value="LOCAL" />
       <updated>1639058393406</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="almost working version">
+      <created>1639411830228</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1639411830228</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -341,7 +348,8 @@
     <MESSAGE value="altered version based on coding session" />
     <MESSAGE value="fixed version" />
     <MESSAGE value="uncomplete" />
-    <option name="LAST_COMMIT_MESSAGE" value="uncomplete" />
+    <MESSAGE value="almost working version" />
+    <option name="LAST_COMMIT_MESSAGE" value="almost working version" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -350,6 +358,11 @@
           <url>file://$PROJECT_DIR$/cfd_assig_1.py</url>
           <line>194</line>
           <option name="timeStamp" value="17" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/cfd_assig_3_new.py</url>
+          <line>111</line>
+          <option name="timeStamp" value="35" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
