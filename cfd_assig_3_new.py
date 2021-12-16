@@ -22,13 +22,13 @@ mJ = 11  # number of mesh points Y direction.
 xL = 1  # length in X direction
 yL = 1  # length in Y direction
 # Solver inputs
-nIterations = 190 # maximum number of iterations
-n_inner_iterations_gs = 10# amount of inner iterations when solving
+nIterations = 300 # maximum number of iterations
+n_inner_iterations_gs = 20# amount of inner iterations when solving
 # pressure correction with Gauss-Seidel
 resTolerance =  0.001# convergence criteria for residuals
 # each variable
-alphaUV = 0.4 # under relaxation factor for U and V
-alphaP = 0.2 # under relaxation factor for P
+alphaUV = 0.1 # under relaxation factor for U and V
+alphaP = 0.5 # under relaxation factor for P
 # ================ Code =======================
 # For all the matrices the first input makes reference to the x coordinate
 # and the second input to the y coordinate, (i+1) is east and (j+1) north
@@ -50,7 +50,7 @@ V = np.zeros((nI, nJ))  # V velocity matrix
 P = np.zeros((nI, nJ))  # pressure matrix
 massFlows = np.zeros((nI, nJ, 4))  # mass flows at the faces
 # m_e, m_w, m_n and m_s
-residuals = np.zeros((3, 1))  # U, V and conitnuity residuals
+  # U, V and conitnuity residuals
 # Generate mesh and compute geometric variables
 # Allocate all variables matrices
 xCoords_N = np.zeros((nI, nJ))  # X coords of the nodes
@@ -94,6 +94,7 @@ for i in range(mI):
             dy_CV[i, j] = yCoords_M[i, j] - yCoords_M[i, j - 1]
 xCoords_N[-1, :] = xL
 yCoords_N[:, -1] = yL
+
 # Fill dxe, dxw, dyn and dys
 for i in range(1, nI - 1):
     for j in range(1, nJ - 1):
@@ -113,7 +114,7 @@ for i in range(1,nI-1):
         D[i, j, 1] = dy_CV[i,j] * nu / dxw_N[i,j]  # west diffusive
         D[i, j, 2] = dx_CV[i,j] * nu / dyn_N[i,j]  # north diffusive
         D[i, j, 3] = dx_CV[i,j] * nu / dys_N[i,j]  # south diffusive
-
+U[:, nJ - 1] = UWall
 for i in range(1,nI-1):
     for j in range(1,nJ-1):
         fxe = 0.5 * dx_CV[i,j] / dxe_N[i,j]
@@ -192,20 +193,24 @@ for iter in range(nIterations):
             F[i, j, 2] = dx_CV[i,j] * rho * Vn  # north convective
             F[i, j, 3] = dx_CV[i,j] * rho * Vs  # south convective
 
-    for i in range(2,nI-2):
-        for j in range(2,nJ-2):
+    for i in range(1,nI-2):
+        for j in range(1,nJ-2):
             # equidistant mesh for internal nodes
-            ue = (U[i,j] + U[i+1,j])/2 + dy_CV[i,j]/(4*coeffsUV[i,j,4])*(P[i+2,j] - 3*P[i+1,j] + 3*P[i,j] - P[i-1,j])
+            ue = (U[i, j] + U[i + 1, j]) / 2 + dy_CV[i, j] / (4 * coeffsUV[i, j, 4]) * (P[i + 2, j] - 3 * P[i + 1, j] + 3 * P[i, j] - P[i - 1, j])
 
-            vn = (V[i,j] + V[i,j+1])/2 + dx_CV[i,j]/(4*coeffsUV[i,j,4])*(P[i,j+2] - 3*P[i,j+1] + 3*P[i,j] - P[i,j-1])
+            vn = (V[i, j] + V[i, j + 1]) / 2 + dx_CV[i, j] / (4 * coeffsUV[i, j, 4]) * (P[i, j + 2] - 3 * P[i, j + 1] + 3 * P[i, j] - P[i, j - 1])
+
+            if i == 1:
+                # half the distance between P and west
+                ue = (U[i,j] + U[i+1,j])/2 + dy_CV[i,j]/(4*coeffsUV[i,j,4])*(P[i+2,j] - 3*P[i+1,j] + 6*P[i,j] - 2*P[i-1,j])
+            elif j == 1:
+                # half the distance between P and south
+                vn = (V[i, j] + V[i, j + 1]) / 2 + dx_CV[i, j] / (4 * coeffsUV[i, j, 4]) * (P[i, j + 2] - 3 * P[i, j + 1] + 6 * P[i, j] - 2*P[i, j - 1])
 
             F[i,j,0] = dy_CV[i,j] * rho * ue
             F[i,j,2] = dx_CV[i,i] * rho * vn
             F[i,j+1,3] = F[i,j,2]
-            F[i+1,j,1] = F[i,j,1]
-        F[i+1,j,1] = F[i,j,0]
-        F[i,j+1,3] = F[i,j,2]
-
+            F[i+1,j,1] = F[i,j,0]
 
     ## Calculate pressure correction equation coefficients
     Dp = np.zeros((nI, nJ, 4))
@@ -215,7 +220,6 @@ for iter in range(nIterations):
             Dp[i, j, 1] = 2/(coeffsUV[i,j,4] + coeffsUV[i-1,j,4])
             Dp[i, j, 2] = 2/(coeffsUV[i,j,4] + coeffsUV[i,j+1,4])
             Dp[i, j, 3] = 2/(coeffsUV[i,j,4] + coeffsUV[i,j-1,4])
-
 
     for i in range(1, nI - 1):
         for j in range(1, nJ - 1):
@@ -239,8 +243,7 @@ for iter in range(nIterations):
             coeffsPp[i, j, 4] = np.sum(coeffsPp[i,j,0:4])
             sourcePp[i, j] = F[i,j,1]-F[i,j,0] + F[i,j,3] - F[i,j,2]
 
-
-
+    coeffsPp[2, 2, 4] = -pow(10,30)
     # Solve for pressure correction (Note that more that one loop is used)
     Pp = np.zeros((nI, nJ))  # pressure correction matrix
     for iter_gs in range(n_inner_iterations_gs):
@@ -251,7 +254,7 @@ for iter in range(nIterations):
             for j in range(nJ - 2,0,-1):
                 Pp[i, j] = (coeffsPp[i, j, 0] * Pp[i + 1, j] + coeffsPp[i, j, 1] * Pp[i - 1, j] + coeffsPp[i, j, 2] *Pp[i, j + 1] + coeffsPp[i, j, 3] * Pp[i, j - 1] + sourcePp[i, j]) / coeffsPp[i, j, 4]
 
-    Pp -= Pp[2,2]# Set Pp with reference to node (2,2) and copy to boundaries
+    Pp -= Pp[2,2] # Set Pp with reference to node (2,2) and copy to boundaries
     Pp[:,0] = Pp[:,1]
     Pp[:,nJ-1] = Pp[:,nJ-2]
     Pp[0, :] = Pp[1, :]
@@ -263,22 +266,24 @@ for iter in range(nIterations):
             U[i,j] += ((Pp[i-1,j] + Pp[i,j])/2 - (Pp[i,j] + Pp[i+1,j])/2)/coeffsUV[i,j,4]
             V[i,j] += ((Pp[i,j-1] + Pp[i,j])/2 - (Pp[i,j] + Pp[i,j+1])/2)/coeffsUV[i,j,4]
 
-    # impose zero mass flow at the boundaries
     for i in range(2,nI-2):
         for j in range(2,nJ-2):
             F[i, j, 0] += rho*Dp[i,j,0]*(Pp[i,j] - Pp[i+1,j])
             F[i, j, 1] += rho*Dp[i,j,1]*(Pp[i-1,j] - Pp[i,j])
             F[i, j, 2] += rho*Dp[i,j,2]*(Pp[i,j] - Pp[i,j+1])
             F[i, j, 3] += rho*Dp[i,j,3]*(Pp[i,j-1] - Pp[i,j])
-    F[nI-1,:,0] = 0
-    F[0,:,1] = 0
-    F[:,nJ-1,2] = 0
-    F[:,0,3] = 0
+
+    # impose zero mass flow at the boundaries
+    F[nI-2,:,0] = 0
+    F[1,:,1] = 0
+    F[:,nJ-2,2] = 0
+    F[:,1,3] = 0
     # Copy P to boundaries
-    P[:, 0] = P[:, 1]
+
+    P[:,0] = P[:,1]
     P[:, nJ - 1] = P[:, nJ - 2]
     P[0, :] = P[1, :]
-    P[nJ - 1, :] = P[nJ - 2, :]
+    P[nI - 1, :] = P[nI - 2, :]
     # Compute residuals
     residuals_U.append(0)  # U momentum residual
     residuals_V.append(0)  # V momentum residual
@@ -297,6 +302,8 @@ for iter in range(nIterations):
 # Plotting section (these are some examples, more plots might be needed)
 # Plot mesh
 plt.figure()
+plt.plot(xCoords_M,yCoords_M)
+plt.plot(xCoords_M.T,yCoords_M.T)
 plt.xlabel('x [m]')
 plt.ylabel('y [m]')
 plt.title('Computational mesh')
@@ -350,9 +357,14 @@ plt.xlabel('u, v [m/s]')
 plt.ylabel('y [m]')
 plt.legend()
 plt.subplot(2, 3, 6)
+residuals = np.zeros((iter+1, 3))
+residuals[:,0] = residuals_U
+residuals[:,1] = residuals_V
+residuals[:,2] = residuals_c
+plt.plot(range(iter+1),residuals)
 plt.title('Residual convergence')
 plt.xlabel('iterations')
 plt.ylabel('residuals [-]')
-# plt.legend('U momentum','V momentum', 'Continuity')
+plt.legend('UVC')
 plt.title('Residuals')
 plt.show()
