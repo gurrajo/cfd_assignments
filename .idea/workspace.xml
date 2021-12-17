@@ -337,7 +337,14 @@
       <option name="project" value="LOCAL" />
       <updated>1639592106524</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="finished version">
+      <created>1639694232613</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1639694232613</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -373,7 +380,8 @@
     <MESSAGE value="cfd_a_3_new added" />
     <MESSAGE value="updated version" />
     <MESSAGE value="almost done version" />
-    <option name="LAST_COMMIT_MESSAGE" value="almost done version" />
+    <MESSAGE value="finished version" />
+    <option name="LAST_COMMIT_MESSAGE" value="finished version" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

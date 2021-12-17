@@ -15,6 +15,7 @@ import copy as cp
 UWall = 1 # velocity of the upper wall
 rho = 1 # density
 nu = 1/1000# kinematic viscosity
+mu = nu*rho
 data_file = "data_Hybrid.txt" # data file where the given solution is stored
 # Geometric inputs (fixed so that a fair comparison can be made)
 mI = 11  # number of mesh points X direction.
@@ -27,7 +28,7 @@ n_inner_iterations_gs = 20# amount of inner iterations when solving
 # pressure correction with Gauss-Seidel
 resTolerance =  0.001# convergence criteria for residuals
 # each variable
-alphaUV = 0.1 # under relaxation factor for U and V
+alphaUV = 0.09 # under relaxation factor for U and V
 alphaP = 0.5 # under relaxation factor for P
 # ================ Code =======================
 # For all the matrices the first input makes reference to the x coordinate
@@ -110,10 +111,10 @@ for i in range(2,nI-2):
 # Initialize variable matrices
 for i in range(1,nI-1):
     for j in range(1,nJ-1):
-        D[i, j, 0] = dy_CV[i,j] * nu / dxe_N[i,j]  # east diffusive
-        D[i, j, 1] = dy_CV[i,j] * nu / dxw_N[i,j]  # west diffusive
-        D[i, j, 2] = dx_CV[i,j] * nu / dyn_N[i,j]  # north diffusive
-        D[i, j, 3] = dx_CV[i,j] * nu / dys_N[i,j]  # south diffusive
+        D[i, j, 0] = dy_CV[i,j] * mu / dxe_N[i,j]  # east diffusive
+        D[i, j, 1] = dy_CV[i,j] * mu / dxw_N[i,j]  # west diffusive
+        D[i, j, 2] = dx_CV[i,j] * mu / dyn_N[i,j]  # north diffusive
+        D[i, j, 3] = dx_CV[i,j] * mu / dys_N[i,j]  # south diffusive
 U[:, nJ - 1] = UWall
 for i in range(1,nI-1):
     for j in range(1,nJ-1):
@@ -357,11 +358,11 @@ plt.xlabel('u, v [m/s]')
 plt.ylabel('y [m]')
 plt.legend()
 plt.subplot(2, 3, 6)
-residuals = np.zeros((iter+1, 3))
+residuals = np.zeros((iter+1, 2))
 residuals[:,0] = residuals_U
 residuals[:,1] = residuals_V
-residuals[:,2] = residuals_c
-plt.plot(range(iter+1),residuals)
+#residuals[:,2] = residuals_c
+plt.semilogy(residuals)
 plt.title('Residual convergence')
 plt.xlabel('iterations')
 plt.ylabel('residuals [-]')
